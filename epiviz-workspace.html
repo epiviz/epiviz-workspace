@@ -1,0 +1,102 @@
+<!-- Polymer dependency -->
+<link rel="import" href="../polymer/polymer.html">
+
+<!-- External Polymer imports dependency -->
+<link rel="import" href="../polymerfire/firebase.html">
+<link rel="import" href="../polymerfire/firebase-app.html">
+<link rel="import" href="../polymerfire/firebase-auth.html">
+
+<!--
+`<epiviz-workspace>` manages user workspaces.
+
+To use, add `<epiviz-workspace>` in the page
+
+      <epiviz-workspace></epiviz-workspace>
+
+@demo demo/index.html Example page showing a workspace element
+-->
+
+<dom-module id="epiviz-workspace">
+
+    <template>
+        <style>
+            :host {
+            }
+        </style>
+
+        <!-- local DOM goes here -->
+        <firebase-app
+            auth-domain=""
+            database-url=""
+            api-key=""
+            storage-bucket=""
+            messaging-sender-id="">
+        </firebase-app>
+
+        <firebase-auth id="auth" 
+            user="{{user}}" 
+            provider="google" 
+            on-error="errorHandler">
+        </firebase-auth>
+
+        <button on-tap="login" 
+            hidden$="{{computeLoginHidden(user)}}">
+        Login</button>
+        <button on-tap="logout" 
+            hidden$="{{computeLogoutHidden(user)}}">
+        Logout</button>
+    </template>
+
+    <script>
+        Polymer({
+            /* Custom element html tag */
+            is: 'epiviz-workspace',
+            // behaviors: [],
+
+            /* Properties that can be defined on the element */
+            properties: {
+                user: {
+                    type: Object,
+                    value: null
+                }
+            },
+
+            login: function() {
+                this.$.auth.signInWithPopup()
+                    .then(function(response) {
+                        // optionally handle a successful login
+                        console.log(response);
+                    })
+                    .catch(function(error) {
+                        // unsuccessful authentication response here
+                        console.log(error);
+                    });
+            },
+
+            logout: function() {
+                this.$.auth.logout();
+            },
+
+            errorHandler: function(e) {
+                console.log('Error: ' + e.detail.message);
+            },
+
+            computeLoginHidden: function(user) {
+                return !!user;
+            },
+
+            computeLogoutHidden: function(user) {
+                return !user;
+            },
+
+            // Initialization that should happen or use FactoryImpl 
+            // created: function() {},
+
+            /* callback function after the element is attached to the DOM */
+            // attached: function() {},
+
+            /* callback function after the element is initialized */
+            // ready: function() {}
+        });
+    </script>
+</dom-module>

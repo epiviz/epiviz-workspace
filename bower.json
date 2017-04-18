@@ -1,0 +1,29 @@
+{
+  "name": "epiviz-workspace",
+  "authors": [
+    "Jayaram Kancherla <jayaram.kancherla@gmail.com>"
+  ],
+  "description": "epiviz workspace components",
+  "main": "",
+  "keywords": [
+    "epiviz",
+    "workspace",
+    "visualization",
+    "genomics",
+    "collaboration"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "^1.9.1",
+    "polymerfire": "^0.11.0"
+  }
+}
