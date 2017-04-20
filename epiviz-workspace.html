@@ -26,11 +26,11 @@ To use, add `<epiviz-workspace>` in the page
 
         <!-- local DOM goes here -->
         <firebase-app
-            auth-domain=""
-            database-url=""
-            api-key=""
-            storage-bucket=""
-            messaging-sender-id="">
+            auth-domain="{{authDomain}}"
+            database-url="{{databaseUrl}}"
+            api-key="{{apiKey}}"
+            storage-bucket="{{storageBucket}}"
+            messaging-sender-id="{{messagingSenderId}}">
         </firebase-app>
 
         <firebase-auth id="auth" 
@@ -58,6 +58,31 @@ To use, add `<epiviz-workspace>` in the page
                 user: {
                     type: Object,
                     value: null
+                },
+
+                authDomain: {
+                    type: String,
+                    notify:true
+                },
+
+                databaseUrl: {
+                    type: String,
+                    notify:true
+                },
+
+                apiKey: {
+                    type: String,
+                    notify:true
+                },
+                
+                storageBucket: {
+                    type: String,
+                    notify:true
+                },
+                
+                messagingSenderId: {
+                    type: String,
+                    notify:true
                 }
             },
 
