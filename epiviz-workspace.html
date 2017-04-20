@@ -6,6 +6,11 @@
 <link rel="import" href="../polymerfire/firebase-app.html">
 <link rel="import" href="../polymerfire/firebase-auth.html">
 
+
+<!-- Style imports -->
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+
 <!--
 `<epiviz-workspace>` manages user workspaces.
 
@@ -38,13 +43,21 @@ To use, add `<epiviz-workspace>` in the page
             provider="google" 
             on-error="errorHandler">
         </firebase-auth>
-
-        <button on-tap="login" 
+        <paper-button raised
+            on-tap="save">
+            <iron-icon icon="save"></iron-icon>
+            Save
+        </paper-button>
+        <paper-button raised 
+            on-tap="login" 
             hidden$="{{computeLoginHidden(user)}}">
-        Login</button>
-        <button on-tap="logout" 
+            <iron-icon icon="account-circle"></iron-icon>
+        Login</paper-button>
+        <paper-button raised
+            on-tap="logout" 
             hidden$="{{computeLogoutHidden(user)}}">
-        Logout</button>
+            <iron-icon icon="account-circle"></iron-icon>
+        Logout</paper-button>
     </template>
 
     <script>
@@ -135,7 +148,7 @@ To use, add `<epiviz-workspace>` in the page
              * Logout handler function.
              */
             logout: function() {
-                this.$.auth.logout();
+                this.$.auth.signOut();
             },
 
             /**
@@ -160,6 +173,7 @@ To use, add `<epiviz-workspace>` in the page
             computeLogoutHidden: function(user) {
                 return !user;
             },
+
 
             // Initialization that should happen or use FactoryImpl 
             // created: function() {},
