@@ -55,37 +55,70 @@ To use, add `<epiviz-workspace>` in the page
 
             /* Properties that can be defined on the element */
             properties: {
+                /**
+                 * User attribute set by firebase-auth when the user is logged in
+                 *
+                 * @type {Object}
+                 */
                 user: {
                     type: Object,
                     value: null
                 },
 
+                /**
+                 * Firebase configuration: auth-domain
+                 *
+                 * @type {String}
+                 */
                 authDomain: {
                     type: String,
                     notify:true
                 },
 
+                /**
+                 * Firebase configuration: database-url
+                 *
+                 * @type {String}
+                 */
                 databaseUrl: {
                     type: String,
                     notify:true
                 },
 
+                /**
+                 * Firebase configuration: api-key
+                 *
+                 * @type {String}
+                 */
                 apiKey: {
                     type: String,
                     notify:true
                 },
                 
+                /**
+                 * Firebase configuration: storage-bucket
+                 *
+                 * @type {String}
+                 */
                 storageBucket: {
                     type: String,
                     notify:true
                 },
-                
+
+                /**
+                 * Firebase configuration: messaging-sender-id
+                 *
+                 * @type {String}
+                 */   
                 messagingSenderId: {
                     type: String,
                     notify:true
                 }
             },
 
+            /**
+             * Login handler function. uses provider defined in the firebase-auth element.
+             */
             login: function() {
                 this.$.auth.signInWithPopup()
                     .then(function(response) {
@@ -98,18 +131,32 @@ To use, add `<epiviz-workspace>` in the page
                     });
             },
 
+            /**
+             * Logout handler function.
+             */
             logout: function() {
                 this.$.auth.logout();
             },
 
+            /**
+             * Login/Logout error handler function.
+             */
             errorHandler: function(e) {
                 console.log('Error: ' + e.detail.message);
             },
 
+            /**
+             * Shows/hides login button
+             * @return {boolean} True if user is logged in
+             */
             computeLoginHidden: function(user) {
                 return !!user;
             },
 
+            /**
+             * shows/hides logout button
+             * @return {boolean} True if user is not logged in
+             */
             computeLogoutHidden: function(user) {
                 return !user;
             },
