@@ -8,10 +8,11 @@
     <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
 
     <link rel="import" href="../epiviz-workspace.html">
+    <link rel="import" href="../test.html">
 </head>
 
 <body>
-    <h3>epiviz workspace</h3>
+    <h3 id="h3">epiviz workspace</h3>
     <epiviz-workspace 
         auth-domain="epiviz-auth.firebaseapp.com"
         database-url="https://epiviz-auth.firebaseio.com/"
@@ -19,6 +20,8 @@
         storage-bucket="epiviz-auth.appspot.com"
         messaging-sender-id="688767774580"
     ></epiviz-workspace>
+    <test-fire></test-fire>
 </body>
+
 
 </html>

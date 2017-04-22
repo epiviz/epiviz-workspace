@@ -5,7 +5,7 @@
 <link rel="import" href="../polymerfire/firebase.html">
 <link rel="import" href="../polymerfire/firebase-app.html">
 <link rel="import" href="../polymerfire/firebase-auth.html">
-
+<link rel="import" href="../polymerfire/firebase-document.html">
 
 <!-- Style imports -->
 <link rel="import" href="../paper-button/paper-button.html">
@@ -43,6 +43,12 @@ To use, add `<epiviz-workspace>` in the page
             provider="google" 
             on-error="errorHandler">
         </firebase-auth>
+
+        <firebase-document
+            path="/workspaces"
+            data="{{workspace}}">
+        </firebase-document>
+
         <paper-button raised
             on-tap="save">
             <iron-icon icon="save"></iron-icon>
@@ -58,6 +64,7 @@ To use, add `<epiviz-workspace>` in the page
             hidden$="{{computeLogoutHidden(user)}}">
             <iron-icon icon="account-circle"></iron-icon>
         Logout</paper-button>
+
     </template>
 
     <script>
@@ -126,6 +133,14 @@ To use, add `<epiviz-workspace>` in the page
                 messagingSenderId: {
                     type: String,
                     notify:true
+                },
+
+                workspace: {
+                    type: Object,
+                },
+
+                environments: {
+                    type: Array,
                 }
             },
 
@@ -174,12 +189,38 @@ To use, add `<epiviz-workspace>` in the page
                 return !user;
             },
 
+            /**
+             * Saving function
+             */
+            save: function() {
+                var p = document.createElement("p");
+                p.innerHTML = "hello"
+                p.id = "a"
+                document.body.appendChild(p);
+                console.log(this.workspace);
+            },  
 
             // Initialization that should happen or use FactoryImpl 
             // created: function() {},
 
             /* callback function after the element is attached to the DOM */
-            // attached: function() {},
+            attached: function() {
+                var w = this.workspace;
+                document.addEventListener('workspaceChanged', function(e) {
+                    var id = e.detail.id;
+                    var props = {
+                        charts: 2,
+                        chartType: "Line"
+                    };
+                    console.log(w);
+                    if (Object.keys(w).length === 0) {
+                        w = {id: props};
+                    } else {
+                        w[id] = props;
+                    }
+                });
+                console.log(w);
+            },
 
             /* callback function after the element is initialized */
             // ready: function() {}

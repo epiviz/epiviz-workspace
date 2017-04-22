@@ -1,0 +1,69 @@
+<!-- Polymer dependency -->
+<link rel="import" href="../polymer/polymer.html">
+
+<!-- External Polymer imports dependency -->
+<link rel="import" href="../polymerfire/firebase.html">
+<link rel="import" href="../polymerfire/firebase-app.html">
+<link rel="import" href="../polymerfire/firebase-auth.html">
+
+
+<!-- Style imports -->
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+
+<!--
+`<epiviz-workspace>` manages user workspaces.
+
+To use, add `<epiviz-workspace>` in the page
+
+      <epiviz-workspace></epiviz-workspace>
+
+@demo demo/index.html Example page showing a workspace element
+-->
+
+<dom-module id="test-fire">
+
+    <template>
+        <style>
+            :host {
+            }
+        </style>
+        <paper-button raised
+            on-tap="test">
+            Test
+        </paper-button>
+    </template>
+
+    <script>
+        Polymer({
+            /* Custom element html tag */
+            is: 'test-fire',
+            // behaviors: [],
+
+            /* Properties that can be defined on the element */
+            test: function() {
+                var rand = Math.random() * 100;
+                this.fire("workspaceChanged", {
+                    id: rand,
+                });
+                var observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(m) {
+                        console.log(m.addedNodes[0])
+                    });
+                });
+                var config = { attributes: true, childList: true, characterData: true };
+                observer.observe(document.body, config);
+            },
+
+            // Initialization that should happen or use FactoryImpl 
+            // created: function() {},
+
+            /* callback function after the element is attached to the DOM */
+            attached: function() {
+            },
+
+            /* callback function after the element is initialized */
+            // ready: function() {}
+        });
+    </script>
+</dom-module>
