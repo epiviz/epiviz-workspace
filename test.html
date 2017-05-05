@@ -43,6 +43,7 @@ To use, add `<epiviz-workspace>` in the page
             /* Properties that can be defined on the element */
             test: function() {
                 var rand = Math.random() * 100;
+                rand = Math.floor(rand);
                 this.fire("workspaceChanged", {
                     id: rand,
                 });

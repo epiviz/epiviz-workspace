@@ -27,6 +27,8 @@
     "polymerfire": "^0.11.0"
   },
   "devDependencies": {
-    "iron-component-page": "PolymerElements/iron-component-page#^1.1.9"
+    "iron-component-page": "PolymerElements/iron-component-page#^1.1.9",
+    "epiviz-charts": "epiviz/epiviz-chart",
+    "epiviz-data-source": "epiviz/epiviz-data-source"
   }
 }

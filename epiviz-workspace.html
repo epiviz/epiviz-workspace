@@ -10,6 +10,7 @@
 <!-- Style imports -->
 <link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../iron-icons/iron-icons.html">
+<link rel="import" href="../paper-dropdown-input/paper-dropdown-input.html">
 
 <!--
 `<epiviz-workspace>` manages user workspaces.
@@ -44,11 +45,16 @@ To use, add `<epiviz-workspace>` in the page
             on-error="errorHandler">
         </firebase-auth>
 
-        <firebase-document
-            path="/workspaces"
+        <firebase-document id="document"
+            path="/{{user.uid}}"
             data="{{workspace}}">
         </firebase-document>
-
+        <paper-dropdown-input 
+        label="Workspace Name" 
+        value="{{title}}"
+        items="{{values}}"
+        freedom="true">
+        </paper-dropdown-input>
         <paper-button raised
             on-tap="save">
             <iron-icon icon="save"></iron-icon>
@@ -82,7 +88,8 @@ To use, add `<epiviz-workspace>` in the page
                  */
                 user: {
                     type: Object,
-                    value: null
+                    value: null,
+                    notify: true
                 },
 
                 /**
@@ -135,12 +142,65 @@ To use, add `<epiviz-workspace>` in the page
                     notify:true
                 },
 
+                /**
+                 * Firebase workspace object
+                 *
+                 * @type {Object}
+                 */  
                 workspace: {
+                    type: Object,
+                    observer: '_workspaceChanged'
+                },
+
+                /**
+                 * Local variable to contain uncommitted changes in environments
+                 *
+                 * @type {String}
+                 */  
+                environments: {
                     type: Object,
                 },
 
-                environments: {
+                /**
+                 * Workspace title
+                 *
+                 * @type {String}
+                 */  
+                title: {
+                    type:String,
+                    notify:true,
+                    observer: '_titleChanged'
+                },
+
+                /**
+                 * Array of workspace names to populate dropdown
+                 *
+                 * @type {Array}
+                 */      
+                values: {
                     type: Array,
+                    notify: true,
+                    value: []
+                }
+            },
+
+            _titleChanged: function() {
+                var self = this;
+                if (this.values.indexOf(this.title) != -1) {
+                    this.$.document.getStoredValue(this.user.uid + "/" + this.title).then(function(data) {
+                        console.log(data);
+                    });
+                }
+            },
+
+            _workspaceChanged: function() {
+                var self = this;
+                if (Object.keys(this.workspace).length != 0 && this.user) {
+                    this.$.document.getStoredValue(this.user.uid).then(function(data) {
+                        self.values = Object.keys(data);
+                        console.log(self.values);
+                        console.log(data);
+                    });
                 }
             },
 
@@ -193,11 +253,30 @@ To use, add `<epiviz-workspace>` in the page
              * Saving function
              */
             save: function() {
-                var p = document.createElement("p");
-                p.innerHTML = "hello"
-                p.id = "a"
-                document.body.appendChild(p);
-                console.log(this.workspace);
+                //temp variables for scope
+                var workspace = this.workspace;
+                var env = this.environments;
+                var doc = this.$.document;
+                var uid = this.user.uid;
+                var title = this.title;
+                console.log(this.title);
+                if (!title) {
+                    alert("Please provide a title for the workspace.");
+                } else if (!this.validate(title)) { 
+                    alert("Please enter a title with no special characters")
+                } else {
+                    Object.keys(this.environments).forEach(function(e) {
+                        console.log(env[e])
+                        doc.path = null;
+                        doc.data = env[e];
+                        doc.saveValue(uid + "/" + title, e);
+                    });                    
+                }
+
+            },
+
+            validate: function(title) {
+                return /^[a-zA-Z0-9- ]*$/.test(title)
             },  
 
             // Initialization that should happen or use FactoryImpl 
@@ -205,25 +284,21 @@ To use, add `<epiviz-workspace>` in the page
 
             /* callback function after the element is attached to the DOM */
             attached: function() {
+                // temp variables to handle scoping issues
                 var w = this.workspace;
+                var env = this.environments;
                 document.addEventListener('workspaceChanged', function(e) {
                     var id = e.detail.id;
-                    var props = {
-                        charts: 2,
-                        chartType: "Line"
-                    };
-                    console.log(w);
-                    if (Object.keys(w).length === 0) {
-                        w = {id: props};
-                    } else {
-                        w[id] = props;
-                    }
+                    console.log(id);
+                    //replace with value received from environments
+                    env[id] = e.detail.data;
                 });
-                console.log(w);
             },
 
             /* callback function after the element is initialized */
-            // ready: function() {}
+            ready: function() {
+                this.environments = {};
+            }
         });
     </script>
 </dom-module>
