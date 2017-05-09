@@ -291,7 +291,7 @@ To use, add `<epiviz-workspace>` in the page
                     console.log(this.remote_environments);
                     $('epiviz-environment').remove();
                     Object.keys(this.remote_environments).forEach(function(environment) {
-                        var env = "<epiviz-environment workspace='" + JSON.stringify(self.remote_environments) +"'> </epiviz-environment>"
+                        var env = "<epiviz-environment workspace='" + JSON.stringify(self.remote_environments[environment]) +"'> </epiviz-environment>"
                         $('body').append(env);
                     });
                 } else {
