@@ -199,7 +199,10 @@ To use, add `<epiviz-workspace>` in the page
                 if (this.values.indexOf(this.title) != -1) {
                     this.$.document.getStoredValue(this.user.uid + "/" + this.title).then(function(data) {
                         self.remote_environments = data;
+                        console.log(data);
                     });
+                } else {
+                    self.remote_environments = {};
                 }
             },
 
