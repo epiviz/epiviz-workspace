@@ -60,6 +60,11 @@ To use, add `<epiviz-workspace>` in the page
             <iron-icon icon="save"></iron-icon>
             Save
         </paper-button>
+        <paper-button raised
+            on-tap="load">
+            <iron-icon icon="cloud-download"></iron-icon>
+            Load
+        </paper-button>
         <paper-button raised 
             on-tap="login" 
             hidden$="{{computeLoginHidden(user)}}">
@@ -167,9 +172,14 @@ To use, add `<epiviz-workspace>` in the page
                  * @type {String}
                  */  
                 title: {
-                    type:String,
-                    notify:true,
+                    type: String,
+                    notify: true,
                     observer: '_titleChanged'
+                },
+
+                remote_environments: {
+                    type: Object,
+                    notify: true,
                 },
 
                 /**
@@ -188,7 +198,7 @@ To use, add `<epiviz-workspace>` in the page
                 var self = this;
                 if (this.values.indexOf(this.title) != -1) {
                     this.$.document.getStoredValue(this.user.uid + "/" + this.title).then(function(data) {
-                        console.log(data);
+                        self.remote_environments = data;
                     });
                 }
             },
@@ -275,6 +285,20 @@ To use, add `<epiviz-workspace>` in the page
 
             },
 
+            load: function() {
+                var self = this;
+                if (Object.keys(this.remote_environments).length !== 0) {
+                    console.log(this.remote_environments);
+                    $('epiviz-environment').remove();
+                    Object.keys(this.remote_environments).forEach(function(environment) {
+                        var env = "<epiviz-environment workspace='" + JSON.stringify(self.remote_environments) +"'> </epiviz-environment>"
+                        $('body').append(env);
+                    });
+                } else {
+                    alert("Unable to load selected environment, environment does not exist in database");
+                }
+            },
+
             validate: function(title) {
                 return /^[a-zA-Z0-9- ]*$/.test(title)
             },  
@@ -298,6 +322,7 @@ To use, add `<epiviz-workspace>` in the page
             /* callback function after the element is initialized */
             ready: function() {
                 this.environments = {};
+                this.remote_environments = {};
             }
         });
     </script>
