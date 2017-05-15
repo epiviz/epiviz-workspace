@@ -50,15 +50,15 @@ To use, add `<epiviz-workspace>` in the page
             data="{{workspace}}">
         </firebase-document>
         <paper-dropdown-input 
-        label="Workspace Name" 
-        value="{{title}}"
-        items="{{values}}"
-        freedom="true">
+            label="Workspace Name" 
+            value="{{title}}"
+            items="{{values}}"
+            freedom="true">
         </paper-dropdown-input>
         <paper-button raised
             on-tap="save">
             <iron-icon icon="save"></iron-icon>
-            Save
+            {{saveText}}
         </paper-button>
         <paper-button raised
             on-tap="load">
@@ -177,9 +177,25 @@ To use, add `<epiviz-workspace>` in the page
                     observer: '_titleChanged'
                 },
 
+                /**
+                 * Copy of document stored in the database
+                 *
+                 * @type {String}
+                 */                  
                 remote_environments: {
                     type: Object,
                     notify: true,
+                },
+
+                /**
+                 * Label for save button
+                 *
+                 * @type {String}
+                 */   
+                saveText: {
+                    type: String,
+                    notify: true,
+                    value: "Save"
                 },
 
                 /**
@@ -194,14 +210,17 @@ To use, add `<epiviz-workspace>` in the page
                 }
             },
 
-            _titleChanged: function() {
+            _titleChanged: function(newdata, olddata) {
+                console.log(newdata);
+                console.log(olddata);
                 var self = this;
-                if (this.values.indexOf(this.title) != -1) {
+                if (this.values.indexOf(this.title) != -1 && this.title) {
                     this.$.document.getStoredValue(this.user.uid + "/" + this.title).then(function(data) {
                         self.remote_environments = data;
-                        console.log(data);
                     });
-                } else {
+                    this.saveText = "Save";
+                } else if (this.values.indexOf(this.title) == -1 && this.title) {
+                    this.saveText = "New Workspace";
                     self.remote_environments = {};
                 }
             },
@@ -211,8 +230,6 @@ To use, add `<epiviz-workspace>` in the page
                 if (Object.keys(this.workspace).length != 0 && this.user) {
                     this.$.document.getStoredValue(this.user.uid).then(function(data) {
                         self.values = Object.keys(data);
-                        console.log(self.values);
-                        console.log(data);
                     });
                 }
             },
@@ -272,14 +289,17 @@ To use, add `<epiviz-workspace>` in the page
                 var doc = this.$.document;
                 var uid = this.user.uid;
                 var title = this.title;
-                console.log(this.title);
                 if (!title) {
                     alert("Please provide a title for the workspace.");
                 } else if (!this.validate(title)) { 
                     alert("Please enter a title with no special characters")
                 } else {
+                    if (this.values.indexOf(title) != -1) {
+                        if (!confirm("Are you sure you want to overwrite this workspace")) {
+                            return;
+                        }
+                    }
                     Object.keys(this.environments).forEach(function(e) {
-                        console.log(env[e])
                         doc.path = null;
                         doc.data = env[e];
                         doc.saveValue(uid + "/" + title, e);
@@ -291,7 +311,6 @@ To use, add `<epiviz-workspace>` in the page
             load: function() {
                 var self = this;
                 if (Object.keys(this.remote_environments).length !== 0) {
-                    console.log(this.remote_environments);
                     $('epiviz-environment').remove();
                     Object.keys(this.remote_environments).forEach(function(environment) {
                         var env = "<epiviz-environment workspace='" + JSON.stringify(self.remote_environments[environment]) +"'> </epiviz-environment>"
@@ -316,7 +335,6 @@ To use, add `<epiviz-workspace>` in the page
                 var env = this.environments;
                 document.addEventListener('workspaceChanged', function(e) {
                     var id = e.detail.id;
-                    console.log(id);
                     //replace with value received from environments
                     env[id] = e.detail.data;
                 });
