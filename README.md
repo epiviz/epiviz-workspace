@@ -29,3 +29,15 @@ To setup, Please open a firebase account and use the firebase configuration to s
     storage-bucket="{{storageBucket}}"
     messaging-sender-id="{{messagingSenderId}}"
 ```
+
+## Database Structure
+
+the firebase database linked to this project creates two documents
+
+### `users`
+
+The users document contains the oauth-id and all the workspace id's linked to a user.
+
+### `workspaces`
+
+Similarly the workspaces document contains all the workspace id's and its content.
