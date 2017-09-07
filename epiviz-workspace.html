@@ -67,9 +67,6 @@ To use, add `<epiviz-workspace>` in the page
             value="{{title}}"
             items="{{values}}"
             freedom="true">
-            <!-- <template is="dom-repeat" items="{{items}}" as="item">
-                <paper-item>{{item.value}}</paper-item>
-            </template> -->
         </paper-dropdown-input>
 
         <paper-button raised on-tap="save">
@@ -93,7 +90,6 @@ To use, add `<epiviz-workspace>` in the page
         Polymer({
             /* Custom element html tag */
             is: 'epiviz-workspace',
-            // behaviors: [],
 
             /* Properties that can be defined on the element */
             properties: {
@@ -166,7 +162,6 @@ To use, add `<epiviz-workspace>` in the page
                 current_workspace: {
                     type: Object,
                     notify: true
-                    // observer: '_workspaceChanged'
                 },
 
                 /**
@@ -188,18 +183,7 @@ To use, add `<epiviz-workspace>` in the page
                  workspace_id: {
                     type: String,
                     notify: true
-                    // value: null
-                    // observer: '_workspaceChanged'
                 },
-
-                /**
-                 * Local variable to contain uncommitted changes in environments
-                 *
-                 * @type {String}
-                 */  
-                // environments: {
-                //     type: Object
-                // },
 
                 /**
                  * Workspace title
@@ -225,15 +209,6 @@ To use, add `<epiviz-workspace>` in the page
                 }
             },
 
-            // listeners: {
-            //     'tap': 'onItemSelect'
-            // },
-
-            // onItemSelect: function(event) {
-            //     event.stopPropagation();
-            //     console.log(this);
-            // },
-
             _titleChanged: function() {
                 var found = null;
                 for (key in this.user_workspaces) {
@@ -248,19 +223,12 @@ To use, add `<epiviz-workspace>` in the page
                 else {
                     this.set("user_workspaces." + this.workspace_id, this.title);
                 }
-
-                // this.user_workspaces.forEach(function(ws) {
-                //     if()
-                // });
-                // this.set("user_workspaces." + this.workspace_id, this.title);
             },
 
             _userWorkspaceChanged: function() {
                 var self = this;
                 var names = [];
                 for (key in self.user_workspaces) {
-                    // self.push("values", {"id": key, "value": self.user_workspaces[key]});
-                    // self.push("values", self.user_workspaces[key]);
                     names.push(self.user_workspaces[key]);
                 }
 
