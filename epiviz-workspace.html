@@ -12,6 +12,9 @@
 <link rel="import" href="../iron-icons/iron-icons.html">
 <link rel="import" href="../paper-dropdown-input/paper-dropdown-input.html">
 
+<!-- Epiviz Imports -->
+<link rel="import" href="../epiviz-charts/epiviz-charts.html">
+
 <!--
 `<epiviz-workspace>` manages user workspaces.
 
@@ -161,7 +164,8 @@ To use, add `<epiviz-workspace>` in the page
                  */  
                 current_workspace: {
                     type: Object,
-                    notify: true
+                    notify: true,
+                    observer: '_currentWorkspaceChanged'
                 },
 
                 /**
@@ -206,6 +210,18 @@ To use, add `<epiviz-workspace>` in the page
                     type: Array,
                     notify: true,
                     value: []
+                },
+
+                /**
+                 * Target Selector to create environments when workspaces are changed.
+                 *
+                 * defaults to document.
+                 *
+                 * @type {String}
+                 */
+                targetSelector: {
+                    type: String,
+                    value: "body"
                 }
             },
 
@@ -219,6 +235,7 @@ To use, add `<epiviz-workspace>` in the page
 
                 if(found) {
                     this.workspace_id = found;
+                    this.triggerReload = true;
                 }
                 else {
                     this.set("user_workspaces." + this.workspace_id, this.title);
@@ -233,6 +250,28 @@ To use, add `<epiviz-workspace>` in the page
                 }
 
                 self.values = names;
+            },
+
+            _currentWorkspaceChanged: function() {
+
+                var self = this;
+                if(self.triggerReload) {
+                    if(self.targetSelector != "body") {
+                        $(self.targetSelector).empty();
+                    }
+                    
+                    for (env in self.current_workspace) {
+                        var elem = document.createElement("epiviz-environment");
+                        elem.setAttribute("plot-id", env);
+                        elem.setAttribute("workspace", JSON.stringify(self.current_workspace[env]));
+
+                        $(self.targetSelector).append(elem);
+                        elem.loadWorkspace(elem.workspace);
+                    }
+
+                    self.triggerReload = false;
+                }
+
             },
 
             /**
@@ -328,7 +367,9 @@ To use, add `<epiviz-workspace>` in the page
             },
 
             /* callback function after the element is initialized */
-            // ready: function() {}
+            ready: function() {
+                self.triggerReload = false;
+            }
         });
     </script>
 </dom-module>
