@@ -59,6 +59,13 @@ To use, add `<epiviz-workspace>` in the page
         </firebase-document>
 
         <firebase-document 
+            id="fireUserWorkspacesDoc"
+            app-name="epivizWorkspace"
+            path="/users/{{user.uid}}/{{workspace_id}}"
+            data="{{workspace_name}}">
+        </firebase-document>
+
+        <firebase-document 
             id="fireWorkspaces"
             app-name="epivizWorkspace"
             path="/workspaces/{{workspace_id}}"
@@ -75,6 +82,11 @@ To use, add `<epiviz-workspace>` in the page
         <paper-button raised on-tap="save">
             <iron-icon icon="save"></iron-icon>
             <span>Save</span>
+        </paper-button>
+
+        <paper-button raised on-tap="delete">
+            <iron-icon icon="delete"></iron-icon>
+            <span>Delete</span>
         </paper-button>
 
         <paper-button raised on-tap="login" hidden$="{{computeLoginHidden(user)}}">
@@ -158,6 +170,15 @@ To use, add `<epiviz-workspace>` in the page
                 },
 
                 /**
+                 * Firebase configuration: messaging-sender-id
+                 *
+                 * @type {String}
+                 */   
+                 workspace_name: {
+                    type: String
+                },
+
+                /**
                  * Firebase workspace object
                  *
                  * @type {Object}
@@ -166,6 +187,18 @@ To use, add `<epiviz-workspace>` in the page
                     type: Object,
                     notify: true,
                     observer: '_currentWorkspaceChanged'
+                },
+
+                /**
+                 * Firebase workspace object
+                 *
+                 * @type {Object}
+                 */  
+                tmp_current_workspace: {
+                    type: Object,
+                    computed: '_getCurrentWorkspace(current_workspace)'
+                    // notify: true,
+                    // observer: '_currentWorkspaceChanged'
                 },
 
                 /**
@@ -225,6 +258,10 @@ To use, add `<epiviz-workspace>` in the page
                 }
             },
 
+            _getCurrentWorkspace: function(cw) {
+                return cw;
+            },
+
             _titleChanged: function() {
                 var found = null;
                 for (key in this.user_workspaces) {
@@ -264,14 +301,12 @@ To use, add `<epiviz-workspace>` in the page
                         var elem = document.createElement("epiviz-environment");
                         elem.setAttribute("plot-id", env);
                         elem.setAttribute("workspace", JSON.stringify(self.current_workspace[env]));
-
                         $(self.targetSelector).append(elem);
                         elem.loadWorkspace(elem.workspace);
                     }
 
                     self.triggerReload = false;
                 }
-
             },
 
             /**
@@ -325,6 +360,18 @@ To use, add `<epiviz-workspace>` in the page
                 var self = this;
                 this.set("user_workspaces." + this.workspace_id, this.title);
                 // TODO: its autosaved but explicity send a save event
+                this.set("current_workspace", this.tmp_current_workspace);
+            },
+
+            /**
+             * Delete Workspace
+             */
+            delete: function() {
+                var self = this;
+                // this.set("user_workspaces." + this.workspace_id, this.title);
+                // TODO: its autosaved but explicity send a save event
+                self.$.fireWorkspaces.destroy();
+                self.$.fireUserWorkspacesDoc.destroy();
 
             },
 
@@ -362,7 +409,7 @@ To use, add `<epiviz-workspace>` in the page
 
                 document.addEventListener('workspaceChanged', function(e) {
                     //replace with value received from environments
-                    self.set("current_workspace." + e.detail.id, e.detail.data);
+                    self.set("tmp_current_workspace." + e.detail.id, e.detail.data);
                 });
             },
 
