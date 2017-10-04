@@ -10,6 +10,9 @@
 <!-- Style imports -->
 <link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../iron-icons/iron-icons.html">
+<!-- <link rel="import" href="../paper-select-or-other/paper-select-or-other.html"> -->
+<link rel="import" href="../signin-button/signin-button.html">
+
 <link rel="import" href="../paper-dropdown-input/paper-dropdown-input.html">
 
 <!-- Epiviz Imports -->
@@ -30,6 +33,32 @@ To use, add `<epiviz-workspace>` in the page
     <template>
         <style>
             :host {
+            }
+
+            .control {
+                margin: 5px;
+                width: 215px;
+                display: inline-block;
+            }
+
+            paper-dropdown-input {
+                vertical-align: middle;
+            }
+
+            paper-button {
+                font-family: 'Roboto', 'Noto', sans-serif;
+                font-weight: normal;
+                font-size: 14px;
+                -webkit-font-smoothing: antialiased;
+                margin: 5px;
+                border: 1px solid transparent;
+                height: 50px;
+                vertical-align: middle;
+            }
+
+            paper-button:hover {
+                -webkit-box-shadow:0 0 3px 3px rgba(0,0,0,.3);
+				box-shadow:0 0 3px 3px rgba(0,0,0,.3);
             }
         </style>
 
@@ -76,28 +105,22 @@ To use, add `<epiviz-workspace>` in the page
             label="Workspace Name" 
             value="{{title}}"
             items="{{values}}"
-            freedom="true">
+            freedom="true"
+            hidden$="{{computeLogoutHidden(user)}}">
         </paper-dropdown-input>
 
-        <paper-button raised on-tap="save">
+        <paper-button raised on-tap="save" hidden$="{{computeLogoutHidden(user)}}">
             <iron-icon icon="save"></iron-icon>
-            <span>Save</span>
+            Save
         </paper-button>
 
-        <paper-button raised on-tap="delete">
+        <paper-button raised on-tap="delete" hidden$="{{computeLogoutHidden(user)}}">
             <iron-icon icon="delete"></iron-icon>
-            <span>Delete</span>
+            Delete
         </paper-button>
 
-        <paper-button raised on-tap="login" hidden$="{{computeLoginHidden(user)}}">
-            <iron-icon icon="account-circle"></iron-icon>
-            <span>Login</span>
-        </paper-button>
-
-        <paper-button raised on-tap="logout" hidden$="{{computeLogoutHidden(user)}}">
-            <iron-icon icon="account-circle"></iron-icon>
-            <span>Logout</span>
-        </paper-button>
+        <signin-button class="control" on-tap="login" hidden$="{{computeLoginHidden(user)}}" provider="google"></signin-button>
+        <signin-button class="control" on-tap="logout" hidden$="{{computeLogoutHidden(user)}}" provider="google" prefix="Sign out from "></signin-button>
 
     </template>
 
@@ -197,7 +220,7 @@ To use, add `<epiviz-workspace>` in the page
                 tmp_current_workspace: {
                     type: Object,
                     computed: '_getCurrentWorkspace(current_workspace)'
-                    // notify: true,
+                    // notify: true
                     // observer: '_currentWorkspaceChanged'
                 },
 
@@ -228,8 +251,8 @@ To use, add `<epiviz-workspace>` in the page
                  * @type {String}
                  */  
                 title: {
-                    type:String,
-                    notify:true,
+                    type: String,
+                    notify: true,
                     observer: '_titleChanged',
                     value: "default workspace"
                 },
@@ -360,7 +383,16 @@ To use, add `<epiviz-workspace>` in the page
                 var self = this;
                 this.set("user_workspaces." + this.workspace_id, this.title);
                 // TODO: its autosaved but explicity send a save event
+                // this.set("current_workspace", {});
+
+                // self.current_workspace = self.tmp_current_workspace;
                 this.set("current_workspace", this.tmp_current_workspace);
+                this.$.fireWorkspaces.saveValue('/workspaces/', this.workspace_id);
+
+
+                // Object.keys(this.tmp_current_workspace).forEach(function(k) {
+                //     this.$.fireWorkspaces.saveValue('/workspaces/', this.workspace_id);
+                // });
             },
 
             /**
@@ -409,7 +441,11 @@ To use, add `<epiviz-workspace>` in the page
 
                 document.addEventListener('workspaceChanged', function(e) {
                     //replace with value received from environments
+                    if(!self.tmp_current_workspace) {
+                        self.tmp_current_workspace = {};
+                    }
                     self.set("tmp_current_workspace." + e.detail.id, e.detail.data);
+                    // self.tmp_current_workspace[e.detail.id] = e.detail.data;
                 });
             },
 
