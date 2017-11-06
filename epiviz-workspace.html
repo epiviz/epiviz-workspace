@@ -61,6 +61,10 @@ To use, add `<epiviz-workspace>` in the page
                 -webkit-box-shadow:0 0 3px 3px rgba(0,0,0,.3);
 				box-shadow:0 0 3px 3px rgba(0,0,0,.3);
             }
+
+            #signin {
+                float: right;
+            }
         </style>
 
         <!-- local DOM goes here -->
@@ -120,7 +124,7 @@ To use, add `<epiviz-workspace>` in the page
             Delete
         </paper-button>
 
-        <signin-button class="control" on-tap="login" hidden$="{{computeLoginHidden(user)}}" provider="google"></signin-button>
+        <signin-button id="signin" class="control" on-tap="login" hidden$="{{computeLoginHidden(user)}}" provider="google"></signin-button>
         <signin-button class="control" on-tap="logout" hidden$="{{computeLogoutHidden(user)}}" provider="google" prefix="Sign out from "></signin-button>
 
     </template>
