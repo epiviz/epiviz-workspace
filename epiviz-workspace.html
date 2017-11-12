@@ -18,6 +18,9 @@
 <!-- Epiviz Imports -->
 <link rel="import" href="../epiviz-charts/epiviz-charts.html">
 
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
 <!--
 `<epiviz-workspace>` manages user workspaces.
 
@@ -33,13 +36,16 @@ To use, add `<epiviz-workspace>` in the page
     <template>
         <style>
             :host {
-                width: 800px;
             }
 
-            .control {
+            signin-button {
                 margin: 5px;
-                width: 215px;
+                margin-right: 10px;
+                width: auto;
                 display: inline-block;
+                text-align: left;
+                --iron-icon-width: 24px;
+                --iron-icon-height: 24px;
             }
 
             paper-dropdown-input {
@@ -62,7 +68,7 @@ To use, add `<epiviz-workspace>` in the page
 				box-shadow:0 0 3px 3px rgba(0,0,0,.3);
             }
 
-            #signin {
+            .workspaceActions {
                 float: right;
             }
         </style>
@@ -105,27 +111,27 @@ To use, add `<epiviz-workspace>` in the page
             path="/workspaces/{{workspace_id}}"
             data="{{current_workspace}}">
         </firebase-document>
+        <div class="workspaceActions">
+            <paper-dropdown-input 
+                label="Workspace Name" 
+                value="{{title}}"
+                items="{{values}}"
+                freedom="true"
+                hidden$="{{computeLogoutHidden(user)}}">
+            </paper-dropdown-input>
+            <paper-button raised on-tap="save" hidden$="{{computeLogoutHidden(user)}}">
+                <iron-icon icon="save"></iron-icon>
+                Save
+            </paper-button>
 
-        <paper-dropdown-input 
-            label="Workspace Name" 
-            value="{{title}}"
-            items="{{values}}"
-            freedom="true"
-            hidden$="{{computeLogoutHidden(user)}}">
-        </paper-dropdown-input>
+            <paper-button raised on-tap="delete" hidden$="{{computeLogoutHidden(user)}}">
+                <iron-icon icon="delete"></iron-icon>
+                Delete
+            </paper-button>
 
-        <paper-button raised on-tap="save" hidden$="{{computeLogoutHidden(user)}}">
-            <iron-icon icon="save"></iron-icon>
-            Save
-        </paper-button>
-
-        <paper-button raised on-tap="delete" hidden$="{{computeLogoutHidden(user)}}">
-            <iron-icon icon="delete"></iron-icon>
-            Delete
-        </paper-button>
-
-        <signin-button id="signin" class="control" on-tap="login" hidden$="{{computeLoginHidden(user)}}" provider="google"></signin-button>
-        <signin-button class="control" on-tap="logout" hidden$="{{computeLogoutHidden(user)}}" provider="google" prefix="Sign out from "></signin-button>
+            <signin-button class="control" on-tap="login" hidden$="{{computeLoginHidden(user)}}" provider="google" label="Sign In"></signin-button>
+            <signin-button class="control" on-tap="logout" hidden$="{{computeLogoutHidden(user)}}" provider="google" label="Sign Out"></signin-button>
+        </div>
 
     </template>
 
