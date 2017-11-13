@@ -111,6 +111,7 @@ To use, add `<epiviz-workspace>` in the page
             path="/workspaces/{{workspace_id}}"
             data="{{current_workspace}}">
         </firebase-document>
+
         <div class="workspaceActions">
             <paper-dropdown-input 
                 label="Workspace Name" 
@@ -253,7 +254,8 @@ To use, add `<epiviz-workspace>` in the page
                  */  
                  workspace_id: {
                     type: String,
-                    notify: true
+                    notify: true,
+                    reflectToAttribute: true
                 },
 
                 /**
@@ -264,8 +266,7 @@ To use, add `<epiviz-workspace>` in the page
                 title: {
                     type: String,
                     notify: true,
-                    observer: '_titleChanged',
-                    value: "default workspace"
+                    observer: '_titleChanged'
                 },
 
                 /**
@@ -305,8 +306,9 @@ To use, add `<epiviz-workspace>` in the page
                 }
 
                 if(found) {
-                    this.workspace_id = found;
+                    this.set("workspace_id", found);
                     this.triggerReload = true;
+                    this.$.fireWorkspaces.initializeStoredValue();
                 }
                 else {
                     this.set("user_workspaces." + this.workspace_id, this.title);
