@@ -334,7 +334,8 @@ To use, add `<epiviz-workspace>` in the page
                     }
                     
                     for (env in self.current_workspace) {
-                        var elem = document.createElement("epiviz-environment");
+
+                        var elem = document.createElement(self.current_workspace[env].node);
                         elem.setAttribute("plot-id", env);
                         elem.setAttribute("workspace", JSON.stringify(self.current_workspace[env]));
                         $(self.targetSelector).append(elem);
