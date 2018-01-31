@@ -26,7 +26,8 @@
     "polymer": "^1.9.1",
     "polymerfire": "^0.11.0",
     "paper-select-or-other": "Meravici/paper-select-or-other#^0.0.5",
-    "signin-button": "samthecodingman/signin-button#^0.0.2"
+    "signin-button": "samthecodingman/signin-button#^0.0.2",
+    "paper-menu-button": "PolymerElements/paper-menu-button#1.5.2"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.1.9",

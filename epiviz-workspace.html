@@ -14,6 +14,7 @@
 <link rel="import" href="../signin-button/signin-button.html">
 
 <link rel="import" href="../paper-dropdown-input/paper-dropdown-input.html">
+<link rel="import" href="../paper-menu-button/paper-menu-button.html">
 
 <!-- Epiviz Imports -->
 <link rel="import" href="../epiviz-charts/epiviz-charts.html">
@@ -113,14 +114,14 @@ To use, add `<epiviz-workspace>` in the page
         </firebase-document>
 
         <div class="workspaceActions">
-            <paper-dropdown-input 
+            <!-- <paper-dropdown-input 
                 label="Workspace Name" 
                 value="{{title}}"
                 items="{{values}}"
                 freedom="true"
                 hidden$="{{computeLogoutHidden(user)}}">
-            </paper-dropdown-input>
-            <paper-button raised on-tap="save" hidden$="{{computeLogoutHidden(user)}}">
+            </paper-dropdown-input> -->
+            <!-- <paper-button raised on-tap="save" hidden$="{{computeLogoutHidden(user)}}">
                 <iron-icon icon="save"></iron-icon>
                 Save
             </paper-button>
@@ -128,7 +129,21 @@ To use, add `<epiviz-workspace>` in the page
             <paper-button raised on-tap="delete" hidden$="{{computeLogoutHidden(user)}}">
                 <iron-icon icon="delete"></iron-icon>
                 Delete
-            </paper-button>
+            </paper-button> -->
+
+            <paper-menu-button vertical-offset="50" hidden$="{{computeLogoutHidden(user)}}">
+                <!-- <paper-icon-button icon="menu" class="dropdown-trigger"></paper-icon-button> -->
+                <paper-button class="dropdown-trigger">
+                    <span>Workspace</span>
+                    <iron-icon icon="icons:arrow-drop-down"></iron-icon>
+                </paper-button>
+                <paper-menu class="dropdown-content">
+                  <paper-item on-tap="_newWorkspace">Create New Workspace</paper-item>
+                  <paper-item on-tap="_loadWorkspace">Load Workspace</paper-item>
+                  <paper-item on-tap="_saveWorkspace">Save Workspace</paper-item>
+                  <paper-item on-tap="_deleteWorkspace">Delete Workspace</paper-item>
+                </paper-menu>
+            </paper-menu-button>
 
             <signin-button class="control" on-tap="login" hidden$="{{computeLoginHidden(user)}}" provider="google" label="Sign In"></signin-button>
             <signin-button class="control" on-tap="logout" hidden$="{{computeLogoutHidden(user)}}" provider="google" label="Sign Out"></signin-button>
@@ -391,7 +406,7 @@ To use, add `<epiviz-workspace>` in the page
             },
 
             /**
-             * Saving function
+             * Saving Workspace
              */
             save: function() {
                 var self = this;
@@ -419,6 +434,36 @@ To use, add `<epiviz-workspace>` in the page
                 self.$.fireWorkspaces.destroy();
                 self.$.fireUserWorkspacesDoc.destroy();
 
+            },
+
+            /**
+             * Create a new Workspace
+             */
+            _newWorkspace: function(e) {
+                console.log(e);
+            },
+
+            /**
+             * Load an existing Workspace
+             */
+            _loadWorkspace: function(e) {
+                console.log(e);
+            },
+
+            /**
+             * Save Workspace
+             */
+            _saveWorkspace: function(e) {
+                console.log(e);
+                this.save();
+            },
+
+            /**
+             * Load an existing Workspace
+             */
+            _deleteWorkspace: function(e) {
+                console.log(e);
+                this.delete();
             },
 
             validate: function(title) {
