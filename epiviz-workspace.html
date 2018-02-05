@@ -15,6 +15,10 @@
 
 <link rel="import" href="../paper-dropdown-input/paper-dropdown-input.html">
 <link rel="import" href="../paper-menu-button/paper-menu-button.html">
+<link rel="import" href="../paper-dialog/paper-dialog.html">
+<link rel="import" href="../paper-dialog-scrollable/paper-dialog-scrollable.html">
+<link rel="import" href="../paper-datatable/paper-datatable.html">
+<link rel="import" href="../paper-input/paper-input.html">
 
 <!-- Epiviz Imports -->
 <link rel="import" href="../epiviz-charts/epiviz-charts.html">
@@ -66,6 +70,10 @@ To use, add `<epiviz-workspace>` in the page
 
             .workspaceActions {
                 float: right;
+            }
+
+            .buttons{
+                padding: 0px;
             }
         </style>
 
@@ -134,11 +142,35 @@ To use, add `<epiviz-workspace>` in the page
                 </paper-button>
                 <paper-menu class="dropdown-content">
                   <paper-item on-tap="_newWorkspace">Create New Workspace</paper-item>
-                  <paper-item on-tap="_loadWorkspace">Load Workspace</paper-item>
+                  <paper-item on-tap="_loadWorkspace">Manage Workspaces</paper-item>
                   <paper-item on-tap="_saveWorkspace">Save Workspace</paper-item>
-                  <paper-item on-tap="_deleteWorkspace">Delete Workspace</paper-item>
                 </paper-menu>
             </paper-menu-button>
+
+            <paper-dialog id="loadWorkspace">
+                <paper-dialog-scrollable>
+                    <paper-datatable data={{values}} on-selection-changed="_selectionChanged" selectable>
+                        <paper-datatable-column header="Workspaces" property="title" sortable editable>
+                        </paper-datatable-column>
+                        <paper-datatable-column header="Actions"editable>
+                            <template>
+                                <paper-icon-button icon="delete"></paper-icon-button>
+                                <paper-icon-button icon="file-download"></paper-icon-button>
+                            </template>
+                        </paper-datatable-column>
+                    </paper-datatable>
+                </paper-dialog-scrollable>
+                <div class="buttons">
+                    <paper-button dialog-dismiss>Load</paper-button>
+                </div>
+            </paper-dialog>
+
+            <paper-dialog id="createWorkspace">
+                <paper-input label="Workspace Name"></paper-input>
+                <div class="buttons">
+                    <paper-button dialog-dimiss>Create</paper-button>
+                </div>
+            </paper-dialog>
 
             <signin-button class="control" on-tap="login" hidden$="{{computeLoginHidden(user)}}" provider="google" label="Sign In"></signin-button>
             <signin-button class="control" on-tap="logout" hidden$="{{computeLogoutHidden(user)}}" provider="google" label="Sign Out"></signin-button>
@@ -219,7 +251,7 @@ To use, add `<epiviz-workspace>` in the page
                  *
                  * @type {String}
                  */   
-                 workspace_name: {
+                workspace_name: {
                     type: String
                 },
 
@@ -251,7 +283,7 @@ To use, add `<epiviz-workspace>` in the page
                  *
                  * @type {Object}
                  */  
-                 user_workspaces: {
+                user_workspaces: {
                     type: Object,
                     notify: true,
                     observer: '_userWorkspaceChanged'
@@ -262,7 +294,7 @@ To use, add `<epiviz-workspace>` in the page
                  *
                  * @type {Object}
                  */  
-                 workspace_id: {
+                workspace_id: {
                     type: String,
                     notify: true,
                     reflectToAttribute: true
@@ -329,7 +361,7 @@ To use, add `<epiviz-workspace>` in the page
                 var self = this;
                 var names = [];
                 for (key in self.user_workspaces) {
-                    names.push(self.user_workspaces[key]);
+                    names.push({title: self.user_workspaces[key]});
                 }
 
                 self.values = names;
@@ -436,6 +468,7 @@ To use, add `<epiviz-workspace>` in the page
              */
             _newWorkspace: function(e) {
                 console.log(e);
+                createWorkspace.open();
             },
 
             /**
@@ -443,6 +476,7 @@ To use, add `<epiviz-workspace>` in the page
              */
             _loadWorkspace: function(e) {
                 console.log(e);
+                loadWorkspace.open()
             },
 
             /**
@@ -454,11 +488,11 @@ To use, add `<epiviz-workspace>` in the page
             },
 
             /**
-             * Load an existing Workspace
+             * Function that fires after manage dialog selection changes
              */
-            _deleteWorkspace: function(e) {
+
+            _selectionChanged: function(e) {
                 console.log(e);
-                this.delete();
             },
 
             validate: function(title) {
