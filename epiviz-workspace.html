@@ -149,7 +149,7 @@ To use, add `<epiviz-workspace>` in the page
 
             <paper-dialog id="loadWorkspace">
                 <paper-dialog-scrollable>
-                    <paper-datatable data={{values}} on-selection-changed="_selectionChanged" selectable>
+                    <paper-datatable data="{{values}}" selected-item="{{tmp_title}}" selectable>
                         <paper-datatable-column header="Workspaces" property="title" sortable editable>
                         </paper-datatable-column>
                         <paper-datatable-column header="Actions"editable>
@@ -161,14 +161,14 @@ To use, add `<epiviz-workspace>` in the page
                     </paper-datatable>
                 </paper-dialog-scrollable>
                 <div class="buttons">
-                    <paper-button dialog-dismiss>Load</paper-button>
+                    <paper-button on-tap="onLoadWorkspace" dialog-dismiss>Load</paper-button>
                 </div>
             </paper-dialog>
 
             <paper-dialog id="createWorkspace">
-                <paper-input label="Workspace Name"></paper-input>
+                <paper-input value="{{tmp_title}}" label="Workspace Name"></paper-input>
                 <div class="buttons">
-                    <paper-button dialog-dimiss>Create</paper-button>
+                    <paper-button on-tap="onCreateWorkspace" dialog-dimiss>Create</paper-button>
                 </div>
             </paper-dialog>
 
@@ -332,7 +332,17 @@ To use, add `<epiviz-workspace>` in the page
                 targetSelector: {
                     type: String,
                     value: "body"
-                }
+                },
+
+                /**
+                 * Workspace tmp title
+                 *
+                 * @type {String}
+                 */  
+                tmp_title: {
+                    type: Object,
+                    notify: true
+                },
             },
 
             _getCurrentWorkspace: function(cw) {
@@ -471,14 +481,30 @@ To use, add `<epiviz-workspace>` in the page
                 createWorkspace.open();
             },
 
+            onCreateWorkspace: function(e) {
+                console.log("new workspace");
+                var new_workspace_id = this._generateWorkspaceId();
+
+                this.set("workspace_id", new_workspace_id);
+                this.set("title", this.tmp_title);
+
+                // this.set("user_workspaces." + new_workspace_id, this.title);
+                // this.set("current_workspace", this.tmp_current_workspace);
+                // this.$.fireWorkspaces.saveValue('/workspaces/', this.workspace_id);
+            },
+
             /**
              * Load an existing Workspace
              */
             _loadWorkspace: function(e) {
                 console.log(e);
-                loadWorkspace.open()
+                loadWorkspace.open();
             },
 
+            onLoadWorkspace: function(e) {
+                console.log(e);
+                this.set("title", this.tmp_title.title);
+            },
             /**
              * Save Workspace
              */
@@ -490,10 +516,10 @@ To use, add `<epiviz-workspace>` in the page
             /**
              * Function that fires after manage dialog selection changes
              */
-
-            _selectionChanged: function(e) {
-                console.log(e);
-            },
+            // _selectionChanged: function(e) {
+            //     console.log(e);
+            //     this.tmp_title = 
+            // },
 
             validate: function(title) {
                 return /^[a-zA-Z0-9- ]*$/.test(title)

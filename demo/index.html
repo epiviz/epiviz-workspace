@@ -5,11 +5,19 @@
     <title>epiviz-workspace</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script
+      src="https://code.jquery.com/jquery-1.12.4.js"
+      integrity="sha256-Qw82+bXyGq6MydymqBxNPYTaUXXq7c8v3CwiYwLLNXU="
+      crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="../bower_components/jquery-collision/js/jquery-collision.js"></script>
+    <script src="../bower_components/jquery-ui-drag-collide/js/jquery-ui-draggable-collision.js"></script>
     <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
 
     <link rel="import" href="../epiviz-workspace.html">
     <!-- <link rel="import" href="../test.html"> -->
-    <link rel="import" href="../../epiviz-charts/epiviz-environment.html">
+    <!-- <link rel="import" href="../../epiviz-charts/epiviz-environment.html"> -->
     <link rel="import" href="../../epiviz-charts/epiviz-charts.html">
     <link rel="import" href="../../epiviz-data-source/epiviz-data-source.html">
 </head>
@@ -27,7 +35,7 @@
     <epiviz-data-source 
         provider-type="epiviz.data.WebServerDataProvider" 
         provider-id="umd" 
-        provider-url="http://epiviz.cbcb.umd.edu/data/main.php">
+        provider-url="http://localhost:5000">
     </epiviz-data-source>
 
     <!-- <epiviz-environment id="env-test"
