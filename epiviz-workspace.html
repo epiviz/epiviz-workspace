@@ -147,9 +147,16 @@ To use, add `<epiviz-workspace>` in the page
                 </paper-menu>
             </paper-menu-button>
 
+            <paper-dialog id="createWorkspace">
+                <paper-input value="{{tmp_title.title}}" label="Workspace Name"></paper-input>
+                <div class="buttons">
+                    <paper-button on-tap="onCreateWorkspace" dialog-dimiss>Create</paper-button>
+                </div>
+            </paper-dialog>
+
             <paper-dialog id="loadWorkspace">
                 <paper-dialog-scrollable>
-                    <paper-datatable data="{{values}}" selected-item="{{tmp_title}}" selectable>
+                    <paper-datatable on-selection-changed="_selectionChanged" data="{{values}}" selected-item="{{tmp_title}}" selectable>
                         <paper-datatable-column header="Workspaces" property="title" sortable editable>
                         </paper-datatable-column>
                         <paper-datatable-column header="Actions"editable>
@@ -161,14 +168,7 @@ To use, add `<epiviz-workspace>` in the page
                     </paper-datatable>
                 </paper-dialog-scrollable>
                 <div class="buttons">
-                    <paper-button on-tap="onLoadWorkspace" dialog-dismiss>Load</paper-button>
-                </div>
-            </paper-dialog>
-
-            <paper-dialog id="createWorkspace">
-                <paper-input value="{{tmp_title}}" label="Workspace Name"></paper-input>
-                <div class="buttons">
-                    <paper-button on-tap="onCreateWorkspace" dialog-dismiss>Create</paper-button>
+                    <paper-button on-tap="onLoadWorkspace"  disabled={{itemNotSelected}} dialog-dismiss>Load</paper-button>
                 </div>
             </paper-dialog>
 
@@ -343,6 +343,12 @@ To use, add `<epiviz-workspace>` in the page
                     type: Object,
                     notify: true
                 },
+
+                itemNotSelected: {
+                    type: Boolean,
+                    value: true,
+                    notify: true,
+                }
             },
 
             _getCurrentWorkspace: function(cw) {
@@ -511,6 +517,14 @@ To use, add `<epiviz-workspace>` in the page
             _saveWorkspace: function(e) {
                 console.log(e);
                 this.save();
+            },
+
+            _selectionChanged: function(e) {
+                if ("selected" in e.detail) {
+                    this.itemNotSelected = false;
+                } else {
+                    this.itemNotSelected = true;
+                }
             },
 
             /**
