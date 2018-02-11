@@ -156,7 +156,7 @@ To use, add `<epiviz-workspace>` in the page
 
             <paper-dialog id="loadWorkspace">
                 <paper-dialog-scrollable>
-                    <paper-datatable on-selection-changed="_selectionChanged" data="{{values}}" selected-item="{{tmp_title}}" selectable>
+                    <paper-datatable id="loadTable" on-selection-changed="_selectionChanged" on-row-tap="_rowTapped" data="{{values}}" selected-item="{{tmp_title}}" selectable>
                         <paper-datatable-column header="Workspaces" property="title" sortable editable>
                         </paper-datatable-column>
                         <paper-datatable-column header="Actions"editable>
@@ -510,6 +510,7 @@ To use, add `<epiviz-workspace>` in the page
             onLoadWorkspace: function(e) {
                 console.log(e);
                 this.set("title", this.tmp_title.title);
+                this.$.loadTable.deselectAll();
             },
             /**
              * Save Workspace
@@ -525,6 +526,10 @@ To use, add `<epiviz-workspace>` in the page
                 } else {
                     this.itemNotSelected = true;
                 }
+            },
+
+            _rowTapped: function(e) {
+                
             },
 
             /**
