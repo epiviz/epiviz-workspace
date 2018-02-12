@@ -148,7 +148,7 @@ To use, add `<epiviz-workspace>` in the page
             </paper-menu-button>
 
             <paper-dialog id="createWorkspace">
-                <paper-input value="{{tmp_title.title}}" label="Workspace Name"></paper-input>
+                <paper-input value="{{title}}" label="Workspace Name"></paper-input>
                 <div class="buttons">
                     <paper-button on-tap="onCreateWorkspace" dialog-dimiss>Create</paper-button>
                 </div>
@@ -480,7 +480,7 @@ To use, add `<epiviz-workspace>` in the page
             },
 
             /**
-             * Create a new Workspace
+             * Dialog for creating a new Workspace
              */
             _newWorkspace: function(e) {
                 console.log(e);
@@ -492,7 +492,7 @@ To use, add `<epiviz-workspace>` in the page
                 var new_workspace_id = this._generateWorkspaceId();
 
                 this.set("workspace_id", new_workspace_id);
-                this.set("title", this.tmp_title);
+                this.set("title", this.tmp_title.title);
 
                 // this.set("user_workspaces." + new_workspace_id, this.title);
                 // this.set("current_workspace", this.tmp_current_workspace);
@@ -528,9 +528,6 @@ To use, add `<epiviz-workspace>` in the page
                 }
             },
 
-            _rowTapped: function(e) {
-                
-            },
 
             /**
              * Function that fires after manage dialog selection changes
