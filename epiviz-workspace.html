@@ -1,5 +1,5 @@
 <!-- Polymer dependency -->
-<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer/polymer-element.html">
 
 <!-- External Polymer imports dependency -->
 <link rel="import" href="../polymerfire/firebase.html">
@@ -9,19 +9,19 @@
 
 <!-- Style imports -->
 <link rel="import" href="../paper-button/paper-button.html">
-<link rel="import" href="../iron-icons/iron-icons.html">
 <!-- <link rel="import" href="../paper-select-or-other/paper-select-or-other.html"> -->
-<link rel="import" href="../signin-button/signin-button.html">
+<link rel="import" href="../google-signin/google-signin.html">
 
-<link rel="import" href="../paper-dropdown-input/paper-dropdown-input.html">
 <link rel="import" href="../paper-menu-button/paper-menu-button.html">
+<link rel="import" href="../paper-listbox/paper-listbox.html">
 <link rel="import" href="../paper-dialog/paper-dialog.html">
 <link rel="import" href="../paper-dialog-scrollable/paper-dialog-scrollable.html">
-<link rel="import" href="../paper-datatable/paper-datatable.html">
+<link rel="import" href="../paper-datatable-api/paper-datatable-api.html">
 <link rel="import" href="../paper-input/paper-input.html">
 
+
 <!-- Epiviz Imports -->
-<link rel="import" href="../epiviz-charts/epiviz-charts.html">
+<!-- <link rel="import" href="../epiviz-charts/epiviz-charts.html"> -->
 
 <!--
 `<epiviz-workspace>` manages user workspaces.
@@ -37,8 +37,7 @@ To use, add `<epiviz-workspace>` in the page
 
     <template>
         <style>
-            :host {
-            }
+            :host {}
 
             signin-button {
                 margin: 5px;
@@ -69,48 +68,26 @@ To use, add `<epiviz-workspace>` in the page
                 float: right;
             }
 
-            .buttons{
+            .buttons {
                 padding: 0px;
             }
         </style>
 
         <!-- local DOM goes here -->
-        <firebase-app
-            name="epivizWorkspace"
-            auth-domain="{{authDomain}}"
-            database-url="{{databaseUrl}}"
-            api-key="{{apiKey}}"
-            storage-bucket="{{storageBucket}}"
+        <firebase-app name="epivizWorkspace" auth-domain="{{authDomain}}" database-url="{{databaseUrl}}" api-key="{{apiKey}}" storage-bucket="{{storageBucket}}"
             messaging-sender-id="{{messagingSenderId}}">
         </firebase-app>
 
-        <firebase-auth 
-            id="auth" 
-            app-name="epivizWorkspace"
-            user="{{user}}" 
-            provider="google" 
-            on-error="errorHandler">
+        <firebase-auth id="auth" app-name="epivizWorkspace" user="{{user}}" provider="google" on-error="errorHandler">
         </firebase-auth>
 
-        <firebase-document 
-            id="fireUsers"
-            app-name="epivizWorkspace"
-            path="/users/{{user.uid}}"
-            data="{{user_workspaces}}">
+        <firebase-document id="fireUsers" app-name="epivizWorkspace" path="/users/{{user.uid}}" data="{{user_workspaces}}">
         </firebase-document>
 
-        <firebase-document 
-            id="fireUserWorkspacesDoc"
-            app-name="epivizWorkspace"
-            path="/users/{{user.uid}}/{{workspaceId}}"
-            data="{{workspace_name}}">
+        <firebase-document id="fireUserWorkspacesDoc" app-name="epivizWorkspace" path="/users/{{user.uid}}/{{workspaceId}}" data="{{workspace_name}}">
         </firebase-document>
 
-        <firebase-document 
-            id="fireWorkspaces"
-            app-name="epivizWorkspace"
-            path="/workspaces/{{workspaceId}}"
-            data="{{current_workspace}}">
+        <firebase-document id="fireWorkspaces" app-name="epivizWorkspace" path="/workspaces/{{workspaceId}}" data="{{current_workspace}}">
         </firebase-document>
 
         <div class="workspaceActions">
@@ -130,18 +107,17 @@ To use, add `<epiviz-workspace>` in the page
                 <iron-icon icon="delete"></iron-icon>
                 Delete
             </paper-button> -->
-
             <paper-menu-button vertical-offset="50" hidden$="{{computeLogoutHidden(user)}}">
                 <!-- <paper-icon-button icon="menu" class="dropdown-trigger"></paper-icon-button> -->
-                <paper-button class="dropdown-trigger">
+                <paper-button slot="dropdown-trigger">
                     <span>Workspace</span>
                     <iron-icon icon="icons:arrow-drop-down"></iron-icon>
                 </paper-button>
-                <paper-menu class="dropdown-content">
-                  <paper-item on-tap="_newWorkspace">Create New Workspace</paper-item>
-                  <paper-item on-tap="_loadWorkspace">Manage Workspaces</paper-item>
-                  <paper-item on-tap="_saveWorkspace">Save Workspace</paper-item>
-                </paper-menu>
+                <paper-listbox slot="dropdown-content">
+                    <paper-item on-tap="_newWorkspace">Create New Workspace</paper-item>
+                    <paper-item on-tap="_loadWorkspace">Manage Workspaces</paper-item>
+                    <paper-item on-tap="_saveWorkspace">Save Workspace</paper-item>
+                </paper-listbox>
             </paper-menu-button>
 
             <paper-dialog id="createWorkspace">
@@ -153,207 +129,242 @@ To use, add `<epiviz-workspace>` in the page
 
             <paper-dialog id="loadWorkspace">
                 <paper-dialog-scrollable>
-                    <paper-datatable id="loadTable" on-selection-changed="_selectionChanged" on-row-tap="_rowTapped" data="{{values}}" selected-item="{{tmp_title}}" selectable>
-                        <paper-datatable-column header="Workspaces" property="title" sortable editable>
-                        </paper-datatable-column>
-                        <paper-datatable-column header="Actions"editable>
+                    <paper-datatable-api id="loadTable" on-selection-changed="_selectionChanged" on-row-tap="_rowTapped" data="{{values}}" selected-item="{{tmp_title}}"
+                        selectable>
+                        <paper-datatable-api-column header="Workspaces" property="title" sortable editable>
+                        </paper-datatable-api-column>
+                        <paper-datatable-api-column header="Actions" editable>
                             <template>
                                 <paper-icon-button icon="delete"></paper-icon-button>
                                 <paper-icon-button icon="file-download"></paper-icon-button>
                             </template>
-                        </paper-datatable-column>
-                    </paper-datatable>
+                        </paper-datatable-api-column>
+                    </paper-datatable-api>
                 </paper-dialog-scrollable>
                 <div class="buttons">
-                    <paper-button on-tap="onLoadWorkspace"  disabled={{itemNotSelected}} dialog-dismiss>Load</paper-button>
+                    <paper-button on-tap="onLoadWorkspace" disabled={{itemNotSelected}} dialog-dismiss>Load</paper-button>
                 </div>
             </paper-dialog>
+            <google-signin></google-signin>
 
-            <signin-button class="control" on-tap="login" hidden$="{{computeLoginHidden(user)}}" provider="google" label="Sign In"></signin-button>
-            <signin-button class="control" on-tap="logout" hidden$="{{computeLogoutHidden(user)}}" provider="google" label="Sign Out"></signin-button>
+            <!--             <signin-button class="control" on-tap="login" hidden$="{{computeLoginHidden(user)}}" provider="google" label="Sign In"></signin-button>
+            <signin-button class="control" on-tap="logout" hidden$="{{computeLogoutHidden(user)}}" provider="google" label="Sign Out"></signin-button> -->
         </div>
 
     </template>
 
     <script>
-        Polymer({
-            /* Custom element html tag */
-            is: 'epiviz-workspace',
+        class EpivizWorkspace extends Polymer.Element {
+            static get is() { return 'epiviz-workspace'; }
 
-            /* Properties that can be defined on the element */
-            properties: {
-                /**
-                 * User attribute set by firebase-auth when the user is logged in
-                 *
-                 * @type {Object}
-                 */
-                user: {
-                    type: Object,
-                    value: null,
-                    notify: true
-                },
+            static get properties() {
+                return {
+                    /**
+                     * User attribute set by firebase-auth when the user is logged in
+                     *
+                     * @type {Object}
+                     */
+                    user: {
+                        type: Object,
+                        value: null,
+                        notify: true
+                    },
 
-                /**
-                 * Firebase configuration: auth-domain
-                 *
-                 * @type {String}
-                 */
-                authDomain: {
-                    type: String,
-                    notify:true
-                },
+                    /**
+                     * Firebase configuration: auth-domain
+                     *
+                     * @type {String}
+                     */
+                    authDomain: {
+                        type: String,
+                        notify: true
+                    },
 
-                /**
-                 * Firebase configuration: database-url
-                 *
-                 * @type {String}
-                 */
-                databaseUrl: {
-                    type: String,
-                    notify:true
-                },
+                    /**
+                     * Firebase configuration: database-url
+                     *
+                     * @type {String}
+                     */
+                    databaseUrl: {
+                        type: String,
+                        notify: true
+                    },
 
-                /**
-                 * Firebase configuration: api-key
-                 *
-                 * @type {String}
-                 */
-                apiKey: {
-                    type: String,
-                    notify:true
-                },
-                
-                /**
-                 * Firebase configuration: storage-bucket
-                 *
-                 * @type {String}
-                 */
-                storageBucket: {
-                    type: String,
-                    notify:true
-                },
+                    /**
+                     * Firebase configuration: api-key
+                     *
+                     * @type {String}
+                     */
+                    apiKey: {
+                        type: String,
+                        notify: true
+                    },
 
-                /**
-                 * Firebase configuration: messaging-sender-id
-                 *
-                 * @type {String}
-                 */   
-                messagingSenderId: {
-                    type: String,
-                    notify:true
-                },
+                    /**
+                     * Firebase configuration: storage-bucket
+                     *
+                     * @type {String}
+                     */
+                    storageBucket: {
+                        type: String,
+                        notify: true
+                    },
 
-                /**
-                 * Firebase configuration: messaging-sender-id
-                 *
-                 * @type {String}
-                 */   
-                workspace_name: {
-                    type: String
-                },
+                    /**
+                     * Firebase configuration: messaging-sender-id
+                     *
+                     * @type {String}
+                     */
+                    messagingSenderId: {
+                        type: String,
+                        notify: true
+                    },
 
-                /**
-                 * Firebase workspace object
-                 *
-                 * @type {Object}
-                 */  
-                current_workspace: {
-                    type: Object,
-                    notify: true,
-                    observer: '_currentWorkspaceChanged'
-                },
+                    /**
+                     * Firebase configuration: messaging-sender-id
+                     *
+                     * @type {String}
+                     */
+                    workspace_name: {
+                        type: String
+                    },
 
-                /**
-                 * Firebase workspace object
-                 *
-                 * @type {Object}
-                 */  
-                tmp_current_workspace: {
-                    type: Object,
-                    computed: '_getCurrentWorkspace(current_workspace)'
-                    // notify: true
-                    // observer: '_currentWorkspaceChanged'
-                },
+                    /**
+                     * Firebase workspace object
+                     *
+                     * @type {Object}
+                     */
+                    current_workspace: {
+                        type: Object,
+                        notify: true,
+                        observer: '_currentWorkspaceChanged'
+                    },
 
-                /**
-                 * Firebase workspace object
-                 *
-                 * @type {Object}
-                 */  
-                user_workspaces: {
-                    type: Object,
-                    notify: true,
-                    observer: '_userWorkspaceChanged'
-                },
+                    /**
+                     * Firebase workspace object
+                     *
+                     * @type {Object}
+                     */
+                    tmp_current_workspace: {
+                        type: Object,
+                        computed: '_getCurrentWorkspace(current_workspace)'
+                        // notify: true
+                        // observer: '_currentWorkspaceChanged'
+                    },
 
-                /**
-                 * temp_workspace_id
-                 *
-                 * @type {Object}
-                 */  
-                workspaceId: {
-                    type: String,
-                    notify: true,
-                    reflectToAttribute: true
-                },
+                    /**
+                     * Firebase workspace object
+                     *
+                     * @type {Object}
+                     */
+                    user_workspaces: {
+                        type: Object,
+                        notify: true,
+                        observer: '_userWorkspaceChanged'
+                    },
 
-                /**
-                 * Workspace title
-                 *
-                 * @type {String}
-                 */  
-                title: {
-                    type: String,
-                    notify: true,
-                    observer: '_titleChanged'
-                },
+                    /**
+                     * temp_workspace_id
+                     *
+                     * @type {Object}
+                     */
+                    workspace_id: {
+                        type: String,
+                        notify: true,
+                        reflectToAttribute: true
+                    },
 
-                /**
-                 * Array of workspace names to populate dropdown
-                 *
-                 * @type {Array}
-                 */      
-                values: {
-                    type: Array,
-                    notify: true,
-                    value: []
-                },
+                    /**
+                     * Workspace title
+                     *
+                     * @type {String}
+                     */
+                    title: {
+                        type: String,
+                        notify: true,
+                        observer: '_titleChanged'
+                    },
 
-                /**
-                 * Target Selector to create environments when workspaces are changed.
-                 *
-                 * defaults to document.
-                 *
-                 * @type {String}
-                 */
-                targetSelector: {
-                    type: String,
-                    value: "body"
-                },
+                    /**
+                     * Array of workspace names to populate dropdown
+                     *
+                     * @type {Array}
+                     */
+                    values: {
+                        type: Array,
+                        notify: true,
+                        value: []
+                    },
 
-                /**
-                 * Workspace tmp title
-                 *
-                 * @type {String}
-                 */  
-                tmp_title: {
-                    type: Object,
-                    notify: true,
-                    value: null
-                },
+                    /**
+                     * Target Selector to create environments when workspaces are changed.
+                     *
+                     * defaults to document.
+                     *
+                     * @type {String}
+                     */
+                    targetSelector: {
+                        type: String,
+                        value: "body"
+                    },
 
-                itemNotSelected: {
-                    type: Boolean,
-                    value: true,
-                    notify: true,
+                    /**
+                     * Workspace tmp title
+                     *
+                     * @type {String}
+                     */
+                    tmp_title: {
+                        type: Object,
+                        notify: true
+                    },
+
+                    itemNotSelected: {
+                        type: Boolean,
+                        value: true,
+                        notify: true,
+                    }
                 }
-            },
+            }
 
-            _getCurrentWorkspace: function(cw) {
+            constructor() {
+                super();
+            }
+
+            /* callback function after the element is attached to the DOM */
+            connectedCallback() {
+                super.connectedCallback();
+                var self = this;
+
+                if (!this.workspace_id) {
+                    this.workspace_id = this._generateWorkspaceId();
+                    this.set("user_workspaces." + this.workspace_id, this.title);
+                }
+
+                document.addEventListener('workspaceChanged', function (e) {
+                    //replace with value received from environments
+                    if (!self.tmp_current_workspace) {
+                        self.tmp_current_workspace = {};
+                    }
+                    self.set("tmp_current_workspace." + e.detail.id, e.detail.data);
+                    // self.tmp_current_workspace[e.detail.id] = e.detail.data;
+                });
+            }
+
+            disconnectedCallback() {
+                super.connectedCallback();
+            }
+
+            /* callback function after the element is initialized */
+            ready() {
+                super.ready();
+                self.triggerReload = false;
+            }
+
+            _getCurrentWorkspace(cw) {
                 return cw;
-            },
+            }
 
-            _titleChanged: function() {
+            _titleChanged() {
                 var found = null;
                 for (key in this.user_workspaces) {
                     if (this.title == this.user_workspaces[key]) {
@@ -361,7 +372,7 @@ To use, add `<epiviz-workspace>` in the page
                     }
                 }
 
-                if(found) {
+                if (found) {
                     this.set("workspaceId", found);
                     this.triggerReload = true;
                     this.$.fireWorkspaces.initializeStoredValue();
@@ -369,26 +380,30 @@ To use, add `<epiviz-workspace>` in the page
                 else {
                     this.set("user_workspaces." + this.workspaceId, this.title);
                 }
-            },
+            }
 
-            _userWorkspaceChanged: function() {
+            _userWorkspaceChanged() {
                 var self = this;
                 var names = [];
+
+                if (!self.user_workspaces.length) {
+                    return;
+                }
+
                 for (key in self.user_workspaces) {
-                    names.push({title: self.user_workspaces[key]});
+                    names.push({ title: self.user_workspaces[key] });
                 }
 
                 self.values = names;
-            },
+            }
 
-            _currentWorkspaceChanged: function() {
-
+            _currentWorkspaceChanged() {
                 var self = this;
-                if(self.triggerReload) {
-                    if(self.targetSelector != "body") {
+                if (self.triggerReload) {
+                    if (self.targetSelector != "body") {
                         $(self.targetSelector).empty();
                     }
-                    
+
                     for (env in self.current_workspace) {
 
                         var elem = document.createElement(self.current_workspace[env].node);
@@ -400,58 +415,58 @@ To use, add `<epiviz-workspace>` in the page
 
                     self.triggerReload = false;
                 }
-            },
+            }
 
             /**
              * Login handler function. uses provider defined in the firebase-auth element.
              */
-            login: function() {
+            login() {
                 var self = this;
                 this.$.auth.signInWithPopup()
-                    .then(function(response) {
+                    .then(function (response) {
                         // TODO: Show successfull login
                     })
-                    .catch(function(error) {
+                    .catch(function (error) {
                         // TODO: Show error
                     });
-            },
+            }
 
             /**
              * Logout handler function.
              */
-            logout: function() {
+            logout() {
                 this.$.auth.signOut();
-            },
+            }
 
             /**
              * Login/Logout error handler function.
              */
-            errorHandler: function(e) {
+            errorHandler(e) {
                 console.log('Error: ' + e.detail.message);
-            },
+            }
 
             /**
              * Shows/hides login button
              * @return {boolean} True if user is logged in
              */
-            computeLoginHidden: function(user) {
+            computeLoginHidden(user) {
                 return !!user;
-            },
+            }
 
             /**
              * shows/hides logout button
              * @return {boolean} True if user is not logged in
              */
-            computeLogoutHidden: function(user) {
+            computeLogoutHidden(user) {
                 return !user;
-            },
+            }
 
             /**
              * Saving Workspace
              */
-            save: function() {
+            save() {
                 var self = this;
-                if(!this.title) {
+                if (!this.title) {
                     this.title = "default workspace - " + this.workspaceId;
                 }
                 this.set("user_workspaces." + this.workspaceId, this.title);
@@ -466,29 +481,29 @@ To use, add `<epiviz-workspace>` in the page
                 // Object.keys(this.tmp_current_workspace).forEach(function(k) {
                 //     this.$.fireWorkspaces.saveValue('/workspaces/', this.workspaceId);
                 // });
-            },
+            }
 
             /**
              * Delete Workspace
              */
-            delete: function() {
+            delete() {
                 var self = this;
                 // this.set("user_workspaces." + this.workspaceId, this.title);
                 // TODO: its autosaved but explicity send a save event
                 self.$.fireWorkspaces.destroy();
                 self.$.fireUserWorkspacesDoc.destroy();
 
-            },
+            }
 
             /**
              * Dialog for creating a new Workspace
              */
-            _newWorkspace: function(e) {
+            _newWorkspace(e) {
                 console.log(e);
-                createWorkspace.open();
-            },
+                this.$.createWorkspace.open();
+            }
 
-            onCreateWorkspace: function(e) {
+            onCreateWorkspace(e) {
                 console.log("new workspace");
                 var new_workspace_id = this._generateWorkspaceId();
 
@@ -498,57 +513,55 @@ To use, add `<epiviz-workspace>` in the page
                 // this.set("user_workspaces." + new_workspace_id, this.title);
                 // this.set("current_workspace", this.tmp_current_workspace);
                 // this.$.fireWorkspaces.saveValue('/workspaces/', this.workspace_id);
-            },
+            }
 
             /**
              * Load an existing Workspace
              */
-            _loadWorkspace: function(e) {
-                console.log(e);
-                loadWorkspace.open();
-            },
+            _loadWorkspace(e) {
+                this.$.loadWorkspace.open();
+            }
 
-            onLoadWorkspace: function(e) {
+            onLoadWorkspace(e) {
                 console.log(e);
                 this.set("title", this.tmp_title.title);
                 this.set("tmp_title", "");
                 this.$.loadTable.deselectAll();
-            },
+            }
             /**
              * Save Workspace
              */
-            _saveWorkspace: function(e) {
-                console.log(e);
+            _saveWorkspace(e) {
                 this.save();
-            },
+            }
 
-            _selectionChanged: function(e) {
+            _selectionChanged(e) {
                 if ("selected" in e.detail) {
                     this.itemNotSelected = false;
                 } else {
                     this.itemNotSelected = true;
                 }
-            },
+            }
 
 
             /**
              * Function that fires after manage dialog selection changes
              */
-            // _selectionChanged: function(e) {
+            // _selectionChanged(e) {
             //     console.log(e);
             //     this.tmp_title = 
             // },
 
-            validate: function(title) {
+            validate(title) {
                 return /^[a-zA-Z0-9- ]*$/.test(title)
-            },  
-            
+            }
+
             /**
             * Generates a unique workspace ID
             * 
             * @return {string}
             */
-            _generateWorkspaceId: function() {
+            _generateWorkspaceId() {
                 var chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
                 var result = '';
                 var size = 8;
@@ -557,34 +570,8 @@ To use, add `<epiviz-workspace>` in the page
                     result += chars[Math.round(Math.random() * (chars.length - 1))];
                 }
                 return 'epiviz-' + result;
-            },
-
-            // Initialization that should happen or use FactoryImpl 
-            // created: function() {},
-
-            /* callback function after the element is attached to the DOM */
-            attached: function() {
-                var self = this;
-
-                if(!this.workspaceId) {
-                    this.workspaceId = this._generateWorkspaceId();
-                    this.set("user_workspaces." + this.workspaceId, this.title);
-                }
-
-                document.addEventListener('workspaceChanged', function(e) {
-                    //replace with value received from environments
-                    if(!self.tmp_current_workspace) {
-                        self.tmp_current_workspace = {};
-                    }
-                    self.set("tmp_current_workspace." + e.detail.id, e.detail.data);
-                    // self.tmp_current_workspace[e.detail.id] = e.detail.data;
-                });
-            },
-
-            /* callback function after the element is initialized */
-            ready: function() {
-                self.triggerReload = false;
             }
-        });
+        }
+        customElements.define(EpivizWorkspace.is, EpivizWorkspace);
     </script>
 </dom-module>
