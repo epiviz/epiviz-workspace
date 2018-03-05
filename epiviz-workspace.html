@@ -23,9 +23,6 @@
 <!-- Epiviz Imports -->
 <link rel="import" href="../epiviz-charts/epiviz-charts.html">
 
-<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-
 <!--
 `<epiviz-workspace>` manages user workspaces.
 
@@ -105,14 +102,14 @@ To use, add `<epiviz-workspace>` in the page
         <firebase-document 
             id="fireUserWorkspacesDoc"
             app-name="epivizWorkspace"
-            path="/users/{{user.uid}}/{{workspace_id}}"
+            path="/users/{{user.uid}}/{{workspaceId}}"
             data="{{workspace_name}}">
         </firebase-document>
 
         <firebase-document 
             id="fireWorkspaces"
             app-name="epivizWorkspace"
-            path="/workspaces/{{workspace_id}}"
+            path="/workspaces/{{workspaceId}}"
             data="{{current_workspace}}">
         </firebase-document>
 
@@ -148,9 +145,9 @@ To use, add `<epiviz-workspace>` in the page
             </paper-menu-button>
 
             <paper-dialog id="createWorkspace">
-                <paper-input value="{{title}}" label="Workspace Name"></paper-input>
+                <paper-input value="{{tmp_title}}" label="Workspace Name"></paper-input>
                 <div class="buttons">
-                    <paper-button on-tap="onCreateWorkspace" dialog-dimiss>Create</paper-button>
+                    <paper-button on-tap="onCreateWorkspace" dialog-dismiss>Create</paper-button>
                 </div>
             </paper-dialog>
 
@@ -294,7 +291,7 @@ To use, add `<epiviz-workspace>` in the page
                  *
                  * @type {Object}
                  */  
-                workspace_id: {
+                workspaceId: {
                     type: String,
                     notify: true,
                     reflectToAttribute: true
@@ -341,7 +338,8 @@ To use, add `<epiviz-workspace>` in the page
                  */  
                 tmp_title: {
                     type: Object,
-                    notify: true
+                    notify: true,
+                    value: null
                 },
 
                 itemNotSelected: {
@@ -364,12 +362,12 @@ To use, add `<epiviz-workspace>` in the page
                 }
 
                 if(found) {
-                    this.set("workspace_id", found);
+                    this.set("workspaceId", found);
                     this.triggerReload = true;
                     this.$.fireWorkspaces.initializeStoredValue();
                 }
                 else {
-                    this.set("user_workspaces." + this.workspace_id, this.title);
+                    this.set("user_workspaces." + this.workspaceId, this.title);
                 }
             },
 
@@ -453,17 +451,20 @@ To use, add `<epiviz-workspace>` in the page
              */
             save: function() {
                 var self = this;
-                this.set("user_workspaces." + this.workspace_id, this.title);
+                if(!this.title) {
+                    this.title = "default workspace - " + this.workspaceId;
+                }
+                this.set("user_workspaces." + this.workspaceId, this.title);
                 // TODO: its autosaved but explicity send a save event
                 // this.set("current_workspace", {});
 
                 // self.current_workspace = self.tmp_current_workspace;
                 this.set("current_workspace", this.tmp_current_workspace);
-                this.$.fireWorkspaces.saveValue('/workspaces/', this.workspace_id);
+                this.$.fireWorkspaces.saveValue('/workspaces/', this.workspaceId);
 
 
                 // Object.keys(this.tmp_current_workspace).forEach(function(k) {
-                //     this.$.fireWorkspaces.saveValue('/workspaces/', this.workspace_id);
+                //     this.$.fireWorkspaces.saveValue('/workspaces/', this.workspaceId);
                 // });
             },
 
@@ -472,7 +473,7 @@ To use, add `<epiviz-workspace>` in the page
              */
             delete: function() {
                 var self = this;
-                // this.set("user_workspaces." + this.workspace_id, this.title);
+                // this.set("user_workspaces." + this.workspaceId, this.title);
                 // TODO: its autosaved but explicity send a save event
                 self.$.fireWorkspaces.destroy();
                 self.$.fireUserWorkspacesDoc.destroy();
@@ -491,8 +492,8 @@ To use, add `<epiviz-workspace>` in the page
                 console.log("new workspace");
                 var new_workspace_id = this._generateWorkspaceId();
 
-                this.set("workspace_id", new_workspace_id);
-                this.set("title", this.tmp_title.title);
+                this.set("workspaceId", new_workspace_id);
+                this.set("title", this.tmp_title);
 
                 // this.set("user_workspaces." + new_workspace_id, this.title);
                 // this.set("current_workspace", this.tmp_current_workspace);
@@ -510,6 +511,7 @@ To use, add `<epiviz-workspace>` in the page
             onLoadWorkspace: function(e) {
                 console.log(e);
                 this.set("title", this.tmp_title.title);
+                this.set("tmp_title", "");
                 this.$.loadTable.deselectAll();
             },
             /**
@@ -564,9 +566,9 @@ To use, add `<epiviz-workspace>` in the page
             attached: function() {
                 var self = this;
 
-                if(!this.workspace_id) {
-                    this.workspace_id = this._generateWorkspaceId();
-                    this.set("user_workspaces." + this.workspace_id, this.title);
+                if(!this.workspaceId) {
+                    this.workspaceId = this._generateWorkspaceId();
+                    this.set("user_workspaces." + this.workspaceId, this.title);
                 }
 
                 document.addEventListener('workspaceChanged', function(e) {
