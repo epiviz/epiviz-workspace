@@ -1,8 +1,6 @@
 {
   "name": "epiviz-workspace",
-  "authors": [
-    "Jayaram Kancherla <jayaram.kancherla@gmail.com>"
-  ],
+  "authors": ["Jayaram Kancherla <jayaram.kancherla@gmail.com>"],
   "description": "epiviz workspace components",
   "main": "",
   "keywords": [
@@ -15,27 +13,24 @@
   "license": "MIT",
   "homepage": "",
   "private": true,
-  "ignore": [
-    "**/.*",
-    "node_modules",
-    "bower_components",
-    "test",
-    "tests"
-  ],
+  "ignore": ["**/.*", "node_modules", "bower_components", "test", "tests"],
   "dependencies": {
-    "polymer": "^2.0.0",
-    "paper-button": "^2.0.0",
-    "polymerfire": "^2.0",
-    "paper-dropdown-input": "^2.0",
-    "paper-dialog": "^2.0",
-    "paper-dialog-scrollable": "^2.0",
-    "paper-datatable-api": "^2.0",
-    "paper-input": "^2.0",
-    "google-signin": "^2.0",
-    "paper-menu-button": "^2.0",
-    "paper-listbox": "^2.0"
+    "polymer": "Polymer/polymer#^2.0.0",
+    "polymerfire": "^2.2.1",
+    "paper-menu-button": "PolymerElements/paper-menu-button#2.1.1",
+    "paper-dialog": "2.1.1",
+    "paper-dialog-scrollable": "2.2.1",
+    "paper-input": "2.2.2",
+    "iron-icons": "^2.1.1",
+    "iron-iconset-svg": "^2.0.0",
+    "iron-icon": "^2.1.0",
+    "paper-button": "^2.1.1",
+    "webcomponentsjs": "^v1.1.0",
+    "bwt-datatable": "^2.1.0"
   },
   "devDependencies": {
-    "epiviz-charts": "epiviz/epiviz-chart#polymer-2.0"
+    "iron-component-page": "PolymerElements/iron-component-page",
+    "epiviz-charts": "epiviz/epiviz-chart#polymer-2.0-1",
+    "epiviz-data-source": "epiviz/epiviz-data-source#polymer-2.0"
   }
 }

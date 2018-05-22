@@ -8,20 +8,18 @@
 <link rel="import" href="../polymerfire/firebase-document.html">
 
 <!-- Style imports -->
+<link rel="import" href="../iron-icons/iron-icons.html">
 <link rel="import" href="../paper-button/paper-button.html">
-<!-- <link rel="import" href="../paper-select-or-other/paper-select-or-other.html"> -->
-<link rel="import" href="../google-signin/google-signin.html">
-
+<!-- <link rel="import" href="../signin-button/signin-button.html"> -->
+<link rel="import" href="../paper-dropdown-input/paper-dropdown-input.html">
 <link rel="import" href="../paper-menu-button/paper-menu-button.html">
 <link rel="import" href="../paper-listbox/paper-listbox.html">
 <link rel="import" href="../paper-dialog/paper-dialog.html">
 <link rel="import" href="../paper-dialog-scrollable/paper-dialog-scrollable.html">
-<link rel="import" href="../paper-datatable-api/paper-datatable-api.html">
+<!-- <link rel="import" href="../paper-datatable/paper-datatable.html"> -->
 <link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../bwt-datatable/bwt-datatable.html">
 
-
-<!-- Epiviz Imports -->
-<!-- <link rel="import" href="../epiviz-charts/epiviz-charts.html"> -->
 
 <!--
 `<epiviz-workspace>` manages user workspaces.
@@ -37,18 +35,6 @@ To use, add `<epiviz-workspace>` in the page
 
     <template>
         <style>
-            :host {}
-
-            signin-button {
-                margin: 5px;
-                margin-right: 10px;
-                width: auto;
-                display: inline-block;
-                text-align: left;
-                --iron-icon-width: 24px;
-                --iron-icon-height: 24px;
-            }
-
             paper-dropdown-input {
                 vertical-align: middle;
             }
@@ -71,6 +57,10 @@ To use, add `<epiviz-workspace>` in the page
             .buttons {
                 padding: 0px;
             }
+
+            .sign-out iron-icon {
+                color: blue;
+            }
         </style>
 
         <!-- local DOM goes here -->
@@ -91,33 +81,16 @@ To use, add `<epiviz-workspace>` in the page
         </firebase-document>
 
         <div class="workspaceActions">
-            <!-- <paper-dropdown-input 
-                label="Workspace Name" 
-                value="{{title}}"
-                items="{{values}}"
-                freedom="true"
-                hidden$="{{computeLogoutHidden(user)}}">
-            </paper-dropdown-input> -->
-            <!-- <paper-button raised on-tap="save" hidden$="{{computeLogoutHidden(user)}}">
-                <iron-icon icon="save"></iron-icon>
-                Save
-            </paper-button>
-
-            <paper-button raised on-tap="delete" hidden$="{{computeLogoutHidden(user)}}">
-                <iron-icon icon="delete"></iron-icon>
-                Delete
-            </paper-button> -->
             <paper-menu-button vertical-offset="50" hidden$="{{computeLogoutHidden(user)}}">
-                <!-- <paper-icon-button icon="menu" class="dropdown-trigger"></paper-icon-button> -->
-                <paper-button slot="dropdown-trigger">
+                <paper-button raised slot="dropdown-trigger">
                     <span>Workspace</span>
                     <iron-icon icon="icons:arrow-drop-down"></iron-icon>
                 </paper-button>
-                <paper-listbox slot="dropdown-content">
+                <paper-menu slot="dropdown-content">
                     <paper-item on-tap="_newWorkspace">Create New Workspace</paper-item>
                     <paper-item on-tap="_loadWorkspace">Manage Workspaces</paper-item>
                     <paper-item on-tap="_saveWorkspace">Save Workspace</paper-item>
-                </paper-listbox>
+                </paper-menu>
             </paper-menu-button>
 
             <paper-dialog id="createWorkspace">
@@ -129,17 +102,25 @@ To use, add `<epiviz-workspace>` in the page
 
             <paper-dialog id="loadWorkspace">
                 <paper-dialog-scrollable>
-                    <paper-datatable-api id="loadTable" on-selection-changed="_selectionChanged" on-row-tap="_rowTapped" data="{{values}}" selected-item="{{tmp_title}}"
+                    <!-- <array-selector id="selector" items="{{workspaceValues}}" selected="{{selected}}" multi toggle></array-selector>
+                    <template is="dom-repeat" items="{{workspaceValues}}" as="item">
+                        <div>
+                            <span>{{item.name}}</span>
+                            <span>{{item.key}}</span>
+
+                        </div>
+                    </template> -->
+                    <paper-datatable id="loadTable" on-selection-changed="_selectionChanged" on-row-tap="_rowTapped" data="{{values}}" selected-item="{{tmp_title}}"
                         selectable>
-                        <paper-datatable-api-column header="Workspaces" property="title" sortable editable>
-                        </paper-datatable-api-column>
-                        <paper-datatable-api-column header="Actions" editable>
+                        <paper-datatable-column header="Workspaces" property="title" sortable editable>
+                        </paper-datatable-column>
+                        <paper-datatable-column header="Actions" editable>
                             <template>
                                 <paper-icon-button icon="delete"></paper-icon-button>
                                 <paper-icon-button icon="file-download"></paper-icon-button>
                             </template>
-                        </paper-datatable-api-column>
-                    </paper-datatable-api>
+                            </paper-datatable-api-column>
+                            </paper-datatable-api>
                 </paper-dialog-scrollable>
                 <div class="buttons">
                     <paper-button on-tap="onLoadWorkspace" disabled={{itemNotSelected}} dialog-dismiss>Load</paper-button>
@@ -147,23 +128,27 @@ To use, add `<epiviz-workspace>` in the page
             </paper-dialog>
             <google-signin></google-signin>
 
-            <!--             <signin-button class="control" on-tap="login" hidden$="{{computeLoginHidden(user)}}" provider="google" label="Sign In"></signin-button>
-            <signin-button class="control" on-tap="logout" hidden$="{{computeLogoutHidden(user)}}" provider="google" label="Sign Out"></signin-button> -->
+            <paper-button raised class="control" on-tap="login" hidden$="{{computeLoginHidden(user)}}">
+                <iron-icon icon="icons:account-circle"></iron-icon>Sign In</paper-button>
+            <paper-button raised class="control sign-out" on-tap="logout" hidden$="{{computeLogoutHidden(user)}}">
+                <iron-icon icon="icons:account-circle"></iron-icon>Sign Out</paper-button>
         </div>
 
     </template>
 
     <script>
+        // Extend Polymer.Element base class
         class EpivizWorkspace extends Polymer.Element {
+
             static get is() { return 'epiviz-workspace'; }
 
             static get properties() {
                 return {
                     /**
-                     * User attribute set by firebase-auth when the user is logged in
-                     *
-                     * @type {Object}
-                     */
+                 * User attribute set by firebase-auth when the user is logged in
+                 *
+                 * @type {Object}
+                 */
                     user: {
                         type: Object,
                         value: null,
@@ -268,7 +253,7 @@ To use, add `<epiviz-workspace>` in the page
                      *
                      * @type {Object}
                      */
-                    workspace_id: {
+                    workspaceId: {
                         type: String,
                         notify: true,
                         reflectToAttribute: true
@@ -290,7 +275,7 @@ To use, add `<epiviz-workspace>` in the page
                      *
                      * @type {Array}
                      */
-                    values: {
+                    workspaceValues: {
                         type: Array,
                         notify: true,
                         value: []
@@ -315,7 +300,8 @@ To use, add `<epiviz-workspace>` in the page
                      */
                     tmp_title: {
                         type: Object,
-                        notify: true
+                        notify: true,
+                        value: null
                     },
 
                     itemNotSelected: {
@@ -324,6 +310,12 @@ To use, add `<epiviz-workspace>` in the page
                         notify: true,
                     }
                 }
+            }
+
+            static get observers() {
+                return [
+                    /* observer array just like 1.x */
+                ]
             }
 
             constructor() {
@@ -335,9 +327,9 @@ To use, add `<epiviz-workspace>` in the page
                 super.connectedCallback();
                 var self = this;
 
-                if (!this.workspace_id) {
-                    this.workspace_id = this._generateWorkspaceId();
-                    this.set("user_workspaces." + this.workspace_id, this.title);
+                if (!this.workspaceId) {
+                    this.workspaceId = this._generateWorkspaceId();
+                    this.set("user_workspaces." + this.workspaceId, this.title);
                 }
 
                 document.addEventListener('workspaceChanged', function (e) {
@@ -351,7 +343,7 @@ To use, add `<epiviz-workspace>` in the page
             }
 
             disconnectedCallback() {
-                super.connectedCallback();
+                super.disconnectedCallback();
             }
 
             /* callback function after the element is initialized */
@@ -366,7 +358,7 @@ To use, add `<epiviz-workspace>` in the page
 
             _titleChanged() {
                 var found = null;
-                for (key in this.user_workspaces) {
+                for (var key in this.user_workspaces) {
                     if (this.title == this.user_workspaces[key]) {
                         found = key;
                     }
@@ -385,16 +377,13 @@ To use, add `<epiviz-workspace>` in the page
             _userWorkspaceChanged() {
                 var self = this;
                 var names = [];
-
-                if (!self.user_workspaces.length) {
-                    return;
-                }
-
-                for (key in self.user_workspaces) {
-                    names.push({ title: self.user_workspaces[key] });
+                var keys = [];
+                for (var key in self.user_workspaces) {
+                    names.push({ "title": self.user_workspaces[key], "key": key });
                 }
 
                 self.values = names;
+                self.push("workspaceValues", names);
             }
 
             _currentWorkspaceChanged() {
@@ -404,8 +393,7 @@ To use, add `<epiviz-workspace>` in the page
                         $(self.targetSelector).empty();
                     }
 
-                    for (env in self.current_workspace) {
-
+                    for (var env in self.current_workspace) {
                         var elem = document.createElement(self.current_workspace[env].node);
                         elem.setAttribute("plot-id", env);
                         elem.setAttribute("workspace", JSON.stringify(self.current_workspace[env]));
@@ -473,6 +461,10 @@ To use, add `<epiviz-workspace>` in the page
                 // TODO: its autosaved but explicity send a save event
                 // this.set("current_workspace", {});
 
+                for (var env in this.tmp_current_workspace) {
+                    document.querySelector("[plot-id=" + env + "]").saveWorkspace();
+                }
+
                 // self.current_workspace = self.tmp_current_workspace;
                 this.set("current_workspace", this.tmp_current_workspace);
                 this.$.fireWorkspaces.saveValue('/workspaces/', this.workspaceId);
@@ -492,7 +484,6 @@ To use, add `<epiviz-workspace>` in the page
                 // TODO: its autosaved but explicity send a save event
                 self.$.fireWorkspaces.destroy();
                 self.$.fireUserWorkspacesDoc.destroy();
-
             }
 
             /**
@@ -519,6 +510,7 @@ To use, add `<epiviz-workspace>` in the page
              * Load an existing Workspace
              */
             _loadWorkspace(e) {
+                console.log(e);
                 this.$.loadWorkspace.open();
             }
 
@@ -532,6 +524,7 @@ To use, add `<epiviz-workspace>` in the page
              * Save Workspace
              */
             _saveWorkspace(e) {
+                console.log(e);
                 this.save();
             }
 
@@ -542,15 +535,6 @@ To use, add `<epiviz-workspace>` in the page
                     this.itemNotSelected = true;
                 }
             }
-
-
-            /**
-             * Function that fires after manage dialog selection changes
-             */
-            // _selectionChanged(e) {
-            //     console.log(e);
-            //     this.tmp_title = 
-            // },
 
             validate(title) {
                 return /^[a-zA-Z0-9- ]*$/.test(title)
@@ -571,7 +555,9 @@ To use, add `<epiviz-workspace>` in the page
                 }
                 return 'epiviz-' + result;
             }
-        }
+        };
+
         customElements.define(EpivizWorkspace.is, EpivizWorkspace);
+
     </script>
 </dom-module>

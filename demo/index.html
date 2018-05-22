@@ -6,13 +6,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
     <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <script
-      src="https://code.jquery.com/jquery-1.12.4.js"
-      integrity="sha256-Qw82+bXyGq6MydymqBxNPYTaUXXq7c8v3CwiYwLLNXU="
-      crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.js" integrity="sha256-Qw82+bXyGq6MydymqBxNPYTaUXXq7c8v3CwiYwLLNXU=" crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-<!--     <script src="../bower_components/jquery-collision/js/jquery-collision.js"></script>
-    <script src="../bower_components/jquery-ui-drag-collide/js/jquery-ui-draggable-collision.js"></script> -->
     <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
 
     <link rel="import" href="../epiviz-workspace.html">
@@ -24,18 +19,10 @@
 
 <body>
     <h3 id="h3">epiviz workspace</h3>
-    <epiviz-workspace 
-        auth-domain="epiviz-auth.firebaseapp.com"
-        database-url="https://epiviz-auth.firebaseio.com/"
-        api-key="AIzaSyAsys0gDGLxQ2H7XNYrvaf9OMkaAK1hfCw"
-        storage-bucket="epiviz-auth.appspot.com"
-        messaging-sender-id="688767774580"
-    ></epiviz-workspace>
+    <epiviz-workspace auth-domain="epiviz-auth.firebaseapp.com" database-url="https://epiviz-auth.firebaseio.com/" api-key="AIzaSyAsys0gDGLxQ2H7XNYrvaf9OMkaAK1hfCw"
+        storage-bucket="epiviz-auth.appspot.com" messaging-sender-id="688767774580"></epiviz-workspace>
     <!-- <test-fire></test-fire> -->
-    <epiviz-data-source 
-        provider-type="epiviz.data.WebServerDataProvider" 
-        provider-id="umd" 
-        provider-url="http://localhost:5000">
+    <epiviz-data-source provider-type="epiviz.data.WebServerDataProvider" provider-id="umd" provider-url="http://epiviz-dev.cbcb.umd.edu/api">
     </epiviz-data-source>
 
     <!-- <epiviz-environment id="env-test"
@@ -43,7 +30,7 @@
         start=84076201
         end=95088740
         ></epiviz-environment> -->
-    
+
     <!-- <epiviz-environment id="env" workspace='{
     "measurements": {
         "affy1": {
