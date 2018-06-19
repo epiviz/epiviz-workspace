@@ -81,7 +81,8 @@ To use, add `<epiviz-workspace>` in the page
         </firebase-document>
 
         <div class="workspaceActions">
-            <paper-menu-button vertical-offset="50" hidden$="{{computeLogoutHidden(user)}}">
+            <!-- <div style="display:inline-block;" hidden$="{{computeLogoutHidden(user)}}"> -->
+            <paper-menu-button vertical-offset="50" disabled="{{computeLogoutHidden(user)}}">
                 <paper-button raised slot="dropdown-trigger">
                     <span>Workspace</span>
                     <iron-icon icon="icons:arrow-drop-down"></iron-icon>
@@ -92,6 +93,7 @@ To use, add `<epiviz-workspace>` in the page
                     <paper-item on-tap="_saveWorkspace">Save Workspace</paper-item>
                 </paper-menu>
             </paper-menu-button>
+            <!-- </div> -->
 
             <paper-dialog id="createWorkspace">
                 <paper-input value="{{tmp_title}}" label="Workspace Name"></paper-input>
@@ -126,8 +128,6 @@ To use, add `<epiviz-workspace>` in the page
                     <paper-button on-tap="onLoadWorkspace" disabled={{itemNotSelected}} dialog-dismiss>Load</paper-button>
                 </div>
             </paper-dialog>
-            <google-signin></google-signin>
-
             <paper-button raised class="control" on-tap="login" hidden$="{{computeLoginHidden(user)}}">
                 <iron-icon icon="icons:account-circle"></iron-icon>Sign In</paper-button>
             <paper-button raised class="control sign-out" on-tap="logout" hidden$="{{computeLogoutHidden(user)}}">
@@ -398,7 +398,7 @@ To use, add `<epiviz-workspace>` in the page
                         elem.setAttribute("plot-id", env);
                         elem.setAttribute("workspace", JSON.stringify(self.current_workspace[env]));
                         $(self.targetSelector).append(elem);
-                        elem.loadWorkspace(elem.workspace);
+                        // elem.loadWorkspace(elem.workspace);
                     }
 
                     self.triggerReload = false;
@@ -424,6 +424,7 @@ To use, add `<epiviz-workspace>` in the page
              */
             logout() {
                 this.$.auth.signOut();
+                this.user = undefined;
             }
 
             /**
@@ -462,7 +463,7 @@ To use, add `<epiviz-workspace>` in the page
                 // this.set("current_workspace", {});
 
                 for (var env in this.tmp_current_workspace) {
-                    document.querySelector("[plot-id=" + env + "]").saveWorkspace();
+                    self.targetSelector.querySelector("[plot-id=" + env + "]").saveWorkspace();
                 }
 
                 // self.current_workspace = self.tmp_current_workspace;
