@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page",
-    "epiviz-charts": "epiviz/epiviz-chart#polymer-2.0-1",
-    "epiviz-data-source": "epiviz/epiviz-data-source#polymer-2.0"
+    "epiviz-charts": "epiviz/epiviz-chart",
+    "epiviz-data-source": "epiviz/epiviz-data-source"
   }
 }
