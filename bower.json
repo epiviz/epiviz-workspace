@@ -1,6 +1,8 @@
 {
   "name": "epiviz-workspace",
-  "authors": ["Jayaram Kancherla <jayaram.kancherla@gmail.com>"],
+  "authors": [
+    "Jayaram Kancherla <jayaram.kancherla@gmail.com>"
+  ],
   "description": "epiviz workspace components",
   "main": "",
   "keywords": [
@@ -13,7 +15,13 @@
   "license": "MIT",
   "homepage": "",
   "private": true,
-  "ignore": ["**/.*", "node_modules", "bower_components", "test", "tests"],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
   "dependencies": {
     "polymer": "Polymer/polymer#^2.0.0",
     "polymerfire": "^2.2.1",
@@ -26,7 +34,8 @@
     "iron-icon": "^2.1.0",
     "paper-button": "^2.1.1",
     "webcomponentsjs": "^v1.1.0",
-    "bwt-datatable": "^2.1.0"
+    "bwt-datatable": "^2.1.0",
+    "iron-ajax": "^3.0.1"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page",

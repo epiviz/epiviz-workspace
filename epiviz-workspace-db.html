@@ -1,0 +1,510 @@
+<!-- Polymer dependency -->
+<link rel="import" href="../polymer/polymer-element.html">
+
+<!-- External Polymer imports dependency -->
+<link rel="import" href="../polymerfire/firebase.html">
+<link rel="import" href="../polymerfire/firebase-app.html">
+<link rel="import" href="../polymerfire/firebase-auth.html">
+<link rel="import" href="../polymerfire/firebase-document.html">
+
+<!-- Style imports -->
+<link rel="import" href="../iron-icons/iron-icons.html">
+<link rel="import" href="../paper-button/paper-button.html">
+<!-- <link rel="import" href="../signin-button/signin-button.html"> -->
+<link rel="import" href="../paper-dropdown-input/paper-dropdown-input.html">
+<link rel="import" href="../paper-menu-button/paper-menu-button.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../paper-listbox/paper-listbox.html">
+<link rel="import" href="../paper-dialog/paper-dialog.html">
+<link rel="import" href="../paper-dialog-scrollable/paper-dialog-scrollable.html">
+<!-- <link rel="import" href="../paper-datatable/paper-datatable.html"> -->
+<link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../bwt-datatable/bwt-datatable.html">
+
+
+<!--
+`<epiviz-workspace>` manages user workspaces.
+
+To use, add `<epiviz-workspace>` in the page
+
+      <epiviz-workspace></epiviz-workspace>
+
+@demo demo/index.html Example page showing a workspace element
+-->
+
+<dom-module id="epiviz-workspace">
+
+    <template>
+        <style>
+            paper-dropdown-input {
+                vertical-align: middle;
+            }
+
+            /* paper-button {
+                font-family: 'Roboto', 'Noto', sans-serif;
+                font-weight: normal;
+                font-size: 14px;
+                -webkit-font-smoothing: antialiased;
+                margin: 5px;
+                border: 1px solid transparent;
+                height: 50px;
+                vertical-align: middle;
+            } */
+
+            .workspaceActions {
+                float: right;
+            }
+
+            .buttons {
+                padding: 0px;
+            }
+
+            .sign-out iron-icon {
+                color: blue;
+            }
+        </style>
+
+        <!-- local DOM goes here -->
+
+        <iron-ajax
+            id="getws"
+            auto
+            method="GET"
+            url="[[api]]"
+            handle-as="json"
+            on-response="handleResponse"
+            debounce-duration="300">
+        </iron-ajax>
+
+        <iron-ajax
+            id="createws"
+            method="POST"
+            url="[[api]]"
+            content-type="application/json"
+            handle-as="json"
+            on-response="handleCreateResponse"
+            debounce-duration="300">
+        </iron-ajax>
+
+        <iron-ajax
+            id="updatews"
+            method="PUT"
+            content-type="application/json"
+            url="[[_getUpdateURL(currentWorkspace)]]"
+            handle-as="json"
+            on-response="handleUpdateResponse"
+            debounce-duration="300">
+        </iron-ajax>
+
+        <iron-ajax
+            id="deletews"
+            method="DELETE"
+            handle-as="json"
+            on-response="handleDeleteResponse"
+            debounce-duration="300">
+        </iron-ajax>
+
+        <div class="workspaceActions">
+            <!-- <div style="display:inline-block;" hidden$="{{computeLogoutHidden(user)}}"> 
+            disabled="{{computeLogoutHidden(user)}}" -->
+
+            <paper-button raised on-tap="_saveWorkspace" hidden$="{{_showSaveWorkspace(currentWorkspace.*)}}">Save ({{_getWorkspaceTitle(currentWorkspace.*)}})</paper-button>
+
+            <paper-menu-button vertical-offset=50>
+                <paper-button raised slot="dropdown-trigger">
+                    <span>Workspace</span>
+                    <iron-icon icon="icons:arrow-drop-down"></iron-icon>
+                  </paper-button>
+                <paper-listbox slot="dropdown-content">
+                    <paper-item on-tap="_newWorkspace">Create New Workspace</paper-item>
+                    <paper-item on-tap="_loadWorkspace">Manage Workspaces</paper-item>
+                    <!-- <paper-item on-tap="_saveWorkspace">Save Workspace</paper-item> -->
+                </paper-listbox>
+            </paper-menu-button>
+            <!-- </div> -->
+
+            <paper-dialog id="createWorkspace">
+                <paper-input value="{{tmp_title}}" label="Workspace Name"></paper-input>
+                <div class="buttons">
+                    <paper-button on-tap="onCreateWorkspace" dialog-dismiss>Create</paper-button>
+                </div>
+            </paper-dialog>
+
+            <paper-dialog id="loadWorkspace">
+                <paper-dialog-scrollable>
+                    <paper-datatable id="loadTable" on-selection-changed="_selectionChanged" on-row-tapped="_rowTapped" on-cell-tap="_cellTapped" data="{{values}}" selected-item="{{tmp_title}}"
+                        selectable>
+                        <paper-datatable-column header="Workspaces" property="title" sortable>
+                        </paper-datatable-column>
+                        <paper-datatable-column header="Actions">
+                            <template>
+                                <span>Delete</span>
+                                <!-- <paper-icon-button icon="delete"></paper-icon-button> -->
+                                <!-- <paper-icon-button on-tap="downloadTapped" icon="file-download"></paper-icon-button> -->
+                            </template>
+                            </paper-datatable-api-column>
+                            </paper-datatable-api>
+                </paper-dialog-scrollable>
+                <div class="buttons">
+                    <paper-button on-tap="onLoadWorkspace" disabled={{itemNotSelected}} dialog-dismiss>Load</paper-button>
+                </div>
+            </paper-dialog>
+        </div>
+
+    </template>
+
+    <script>
+        // Extend Polymer.Element base class
+        class EpivizWorkspace extends Polymer.Element {
+
+            static get is() { return 'epiviz-workspace'; }
+
+            static get properties() {
+                return {
+                    /**
+                 * User attribute set by firebase-auth when the user is logged in
+                 *
+                 * @type {Object}
+                 */
+                    user: {
+                        type: Object,
+                        value: null,
+                        notify: true
+                    },
+
+                    api: {
+                        type: String,
+                        notify: true
+                    },
+
+                    currentWorkspace: {
+                        type: Object,
+                        notify: true,
+                        value: function() {
+                            return null;
+                        },
+                        observer: "_currentWorkspaceChanged"
+                    },
+
+                    itemNotSelected: {
+                        type: Boolean,
+                        value: true,
+                        notify: true,
+                    },
+
+                    /**
+                     * Target Selector to create environments when workspaces are changed.
+                     *
+                     * defaults to document.
+                     *
+                     * @type {String}
+                     */
+                     targetSelector: {
+                        type: String,
+                        value: "body"
+                    },
+
+                    _updateFlag: {
+                        type: Boolean,
+                        value : false
+                    },
+
+                                        /**
+                     * Array of workspace names to populate dropdown
+                     *
+                     * @type {Array}
+                     */
+                     workspaceValues: {
+                        type: Array,
+                        notify: true,
+                        value: []
+                    },
+
+                    values: {
+                        type: Array,
+                        notify: true
+                    }
+                }
+            }
+
+            static get observers() {
+                return [
+                    /* observer array just like 1.x */
+                ]
+            }
+
+            constructor() {
+                super();
+            }
+
+            /* callback function after the element is attached to the DOM */
+            connectedCallback() {
+                super.connectedCallback();
+                var self = this;
+
+                if (!this.workspaceId) {
+                    this.workspaceId = this._generateWorkspaceId();
+                    this.set("user_workspaces." + this.workspaceId, this.title);
+                }
+
+                document.addEventListener('workspaceChanged', function (e) {
+                    //replace with value received from environments
+                    self.currentWorkspace["workspace"][e.detail.id] = e.detail.data;
+                });
+            }
+
+            disconnectedCallback() {
+                super.disconnectedCallback();
+            }
+
+            /* callback function after the element is initialized */
+            ready() {
+                super.ready();
+                self.triggerReload = false;
+            }
+
+            handleResponse(e) {
+                var self = this;
+
+                // workspace resp format
+                // workspace = {
+                //     workspace_id:"",
+                //     user_id: "",
+                //     title:  "",
+                //     description: "",
+                //     genomes: [],
+                //     tags: [],
+                //     workspace: {},
+                //     id: 1234
+                // }
+
+                var resp = e.detail.response;
+                self._workspaces = resp;
+                self._workspacesObj = {}
+                var names = [];
+                resp.forEach(function(res) {
+                    names.push({ "title": res.title, "key": res.id });
+                    // names[res.id] = res.title;
+                    self._workspacesObj[res.id] = res;
+                });
+
+                self.values = names;
+                self.set("values", names)
+                // this.gene = resp.data[0].gene;
+            }
+
+            _cellTapped(e) {
+                var self = this;
+                e.preventDefault();
+                e.stopPropagation();
+                console.log(e);
+                if (e.detail.column.header == "Actions") {
+                    // delete this workspace
+
+                    var ajaxElem = this.$.deletews;
+                    ajaxElem.url = this._getDeleteURL(this._workspacesObj[e.detail.item.key]);
+                    ajaxElem.generateRequest();
+
+                    delete self._workspacesObj[e.detail.item.key];
+                }
+            }
+
+            handleCreateResponse(e) {
+                var self = this;
+                console.log("create");
+                console.log(e.detail.response);
+
+                this.currentWorkspace = e.detail.response;
+                self._workspacesObj[e.detail.response.id] = e.detail.response;
+
+                var names = JSON.parse(JSON.stringify(self.values));
+
+                names.push({ "title": e.detail.response.title, "key": e.detail.response.id })
+
+                self.values = names;
+                self.set("values", names);
+
+                // its in a wierd state where workspace is created after adding tracks
+                //  TODO: this only works for now
+                var elem = document.querySelector(this.targetSelector).querySelector("epiviz-navigation");
+                elem.saveWorkspace();
+
+                this._updateFlag = true;
+            }
+
+            handleUpdateResponse(e) {
+                console.log("update");
+                console.log(e.detail.response);
+            }
+
+            handleDeleteResponse(e) {
+                var self = this;
+                console.log("delete");
+                console.log(e.detail.response);
+
+                var names = [];
+                Object.keys(self._workspacesObj).forEach(function(m) {
+                    var elem = self._workspacesObj[m];
+                    names.push({ "title": elem.title, "key": elem.id });
+                });
+
+                self.values = names;
+                self.set("values", names)
+            }
+
+            _showSaveWorkspace(currentWorkspace) {
+                var currentWorkspace = this.currentWorkspace;
+                if(currentWorkspace == null || currentWorkspace == {} || currentWorkspace == undefined) {
+                    return true
+                }
+
+                return false
+            }
+
+            _getWorkspaceTitle(currentWorkspace) {
+                var currentWorkspace = this.currentWorkspace;
+                if(!this._showSaveWorkspace(currentWorkspace)) {
+                    return currentWorkspace.title.slice(0, 5) + "...";
+                }
+
+                return ""
+            }
+
+            _saveWorkspace(e) {
+                console.log("save workspace");
+
+                this._currentWorkspaceChanged(this.currentWorkspace);
+            }
+
+            /**
+             * Dialog for creating a new Workspace
+             */
+             _newWorkspace(e) {
+                console.log(e);
+                this.$.createWorkspace.open();
+            }
+
+            onCreateWorkspace(e) {
+                console.log("new workspace");
+                console.log(this.currentWorkspace);
+                var new_workspace_id = this._generateWorkspaceId();
+
+                this.set("workspaceId", new_workspace_id);
+                this.set("title", this.tmp_title);
+
+                this.currentWorkspace = {
+                    workspace_id:new_workspace_id,
+                    user_id: "root",
+                    title:  this.tmp_title,
+                    description: "",
+                    genomes: [],
+                    tags: [],
+                    workspace: {}
+                }
+
+                console.log(this);
+
+                this.set("currentWorkspace", this.currentWorkspace);
+                console.log(this.currentWorkspace);
+
+                var ajaxElem = this.$.createws;
+                ajaxElem.body = this.currentWorkspace;
+                ajaxElem.generateRequest();
+            }
+
+            /**
+             * Load an existing Workspace
+             */
+             _loadWorkspace(e) {
+                console.log(e);
+                this.$.loadWorkspace.open();
+            }
+
+            onLoadWorkspace(e) {
+                var self = this;
+                console.log(e);
+                this.currentWorkspace = this._workspacesObj[this.tmp_title.key];
+                // this.set("title", this.tmp_title.title);
+
+                $(self.targetSelector).empty();
+
+                for (var env in self.currentWorkspace.workspace) {
+                    var elem = document.createElement(self.currentWorkspace.workspace[env].node);
+                    elem.setAttribute("plot-id", env);
+                    elem.setAttribute("workspace", JSON.stringify(self.currentWorkspace.workspace[env]));
+                    $(self.targetSelector).append(elem);
+                    elem.loadWorkspace(elem.workspace);
+                }
+
+                this.set("tmp_title", "");
+                this.$.loadTable.deselectAll();
+
+                this._updateFlag = true;
+            }
+
+            _getUpdateURL(cw) {
+                if (cw) {
+                    return this.api + cw.workspace_id;
+                }
+
+                return this.api;
+            }
+
+            _getDeleteURL(cw) {
+                if (cw) {
+                    return this.api + cw.workspace_id;
+                }
+
+                return this.api;
+            }
+
+            _currentWorkspaceChanged(newVal, oldVal) {
+                if (newVal && this._updateFlag) {
+                    var ajaxElem = this.$.updatews;
+                    ajaxElem.body = this.currentWorkspace;
+
+                    ajaxElem.generateRequest();
+                }
+            }
+
+            _selectionChanged(e) {
+                if ("selected" in e.detail) {
+                    this.itemNotSelected = false;
+                } else {
+                    this.itemNotSelected = true;
+                }
+            }
+
+            /**
+             * Delete Workspace
+             */
+             delete() {
+                var self = this;
+                console.log("delete workspace");
+            }
+
+            validate(title) {
+                return /^[a-zA-Z0-9- ]*$/.test(title)
+            }
+
+            /**
+            * Generates a unique workspace ID
+            * 
+            * @return {string}
+            */
+            _generateWorkspaceId() {
+                var chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                var result = '';
+                var size = 8;
+
+                for (var i = 0; i < size; ++i) {
+                    result += chars[Math.round(Math.random() * (chars.length - 1))];
+                }
+                return 'epiviz-' + result;
+            }
+        };
+
+        customElements.define(EpivizWorkspace.is, EpivizWorkspace);
+
+    </script>
+</dom-module>
