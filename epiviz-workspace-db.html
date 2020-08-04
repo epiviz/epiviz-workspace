@@ -293,6 +293,12 @@ To use, add `<epiviz-workspace>` in the page
                 self.values = names;
                 self.set("values", names)
                 // this.gene = resp.data[0].gene;
+
+                document.dispatchEvent(new CustomEvent('WorkspacesLoaded',
+                    {
+                        bubbles: true
+                    }
+                ));
             }
 
             _cellTapped(e) {
@@ -456,7 +462,9 @@ To use, add `<epiviz-workspace>` in the page
                     elem.setAttribute("plot-id", env);
                     elem.setAttribute("workspace", JSON.stringify(self.currentWorkspace.workspace[env]));
                     $(self.targetSelector).append(elem);
-                    elem.loadWorkspace(elem.workspace);
+                    setTimeout(function() {
+                        elem.loadWorkspace(elem.workspace);
+                    }, 500)
                 }
 
                 this.set("tmp_title", "");
@@ -531,13 +539,15 @@ To use, add `<epiviz-workspace>` in the page
 </dom-module>
 
 <script>
-    window.addEventListener('WebComponentsReady', function() {
-        var workspace = getUrlParameter("ws");
-        console.log(workspace);
-        if(workspace) {
-            document.querySelector("epiviz-workspace").loadWorkspace(workspace);
-        }
-    });
+    // window.addEventListener('WebComponentsReady', function() {
+        document.addEventListener('WorkspacesLoaded', function() {
+            var workspace = getUrlParameter("ws");
+            console.log(workspace);
+            if(workspace) {
+                document.querySelector("epiviz-workspace").loadWorkspace(parseInt(workspace));
+            }
+        });
+    // });
 
     function getUrlParameter(sParam) {
         var currPage = decodeURIComponent(window.location.search.substring(1));
