@@ -235,6 +235,7 @@ To use, add `<epiviz-workspace>` in the page
 
             constructor() {
                 super();
+                this.tmpWorkspace = {};
             }
 
             /* callback function after the element is attached to the DOM */
@@ -251,6 +252,8 @@ To use, add `<epiviz-workspace>` in the page
                     //replace with value received from environments
                     if (self.currentWorkspace) {
                         self.currentWorkspace["workspace"][e.detail.id] = e.detail.data;
+                    } else {
+                        self.tmpWorkspace[e.detail.id] = e.detail.data;
                     }
                 });
             }
@@ -305,7 +308,7 @@ To use, add `<epiviz-workspace>` in the page
                 var self = this;
                 e.preventDefault();
                 e.stopPropagation();
-                console.log(e);
+                // console.log(e);
                 if (e.detail.column.header == "Actions") {
                     // delete this workspace
 
@@ -319,8 +322,8 @@ To use, add `<epiviz-workspace>` in the page
 
             handleCreateResponse(e) {
                 var self = this;
-                console.log("create");
-                console.log(e.detail.response);
+                // console.log("create");
+                // console.log(e.detail.response);
 
                 this.currentWorkspace = e.detail.response;
                 self._workspacesObj[e.detail.response.id] = e.detail.response;
@@ -341,14 +344,14 @@ To use, add `<epiviz-workspace>` in the page
             }
 
             handleUpdateResponse(e) {
-                console.log("update");
-                console.log(e.detail.response);
+                // console.log("update");
+                // console.log(e.detail.response);
             }
 
             handleDeleteResponse(e) {
                 var self = this;
-                console.log("delete");
-                console.log(e.detail.response);
+                // console.log("delete");
+                // console.log(e.detail.response);
 
                 var names = [];
                 Object.keys(self._workspacesObj).forEach(function(m) {
@@ -379,7 +382,7 @@ To use, add `<epiviz-workspace>` in the page
             }
 
             _saveWorkspace(e) {
-                console.log("save workspace");
+                // console.log("save workspace");
 
                 this._currentWorkspaceChanged(this.currentWorkspace);
             }
@@ -388,13 +391,13 @@ To use, add `<epiviz-workspace>` in the page
              * Dialog for creating a new Workspace
              */
              _newWorkspace(e) {
-                console.log(e);
+                // console.log(e);
                 this.$.createWorkspace.open();
             }
 
             onCreateWorkspace(e) {
-                console.log("new workspace");
-                console.log(this.currentWorkspace);
+                // console.log("new workspace");
+                // console.log(this.currentWorkspace);
                 var new_workspace_id = this._generateWorkspaceId();
 
                 this.set("workspaceId", new_workspace_id);
@@ -409,10 +412,14 @@ To use, add `<epiviz-workspace>` in the page
                     workspace: {}
                 }
 
-                console.log(this);
+                if(this.tmpWorkspace) {
+                    this.currentWorkspace.workspace = this.tmpWorkspace;
+                }
+
+                // console.log(this);
 
                 this.set("currentWorkspace", this.currentWorkspace);
-                console.log(this.currentWorkspace);
+                // console.log(this.currentWorkspace);
 
                 var ajaxElem = this.$.createws;
                 ajaxElem.body = this.currentWorkspace;
@@ -423,13 +430,13 @@ To use, add `<epiviz-workspace>` in the page
              * Load an existing Workspace
              */
              _loadWorkspace(e) {
-                console.log(e);
+                // console.log(e);
                 this.$.loadWorkspace.open();
             }
 
             onLoadWorkspace(e) {
                 var self = this;
-                console.log(e);
+                // console.log(e);
                 this.currentWorkspace = this._workspacesObj[this.tmp_title.key];
                 // this.set("title", this.tmp_title.title);
 
@@ -462,9 +469,6 @@ To use, add `<epiviz-workspace>` in the page
                     elem.setAttribute("plot-id", env);
                     elem.setAttribute("workspace", JSON.stringify(self.currentWorkspace.workspace[env]));
                     $(self.targetSelector).append(elem);
-                    setTimeout(function() {
-                        elem.loadWorkspace(elem.workspace);
-                    }, 500)
                 }
 
                 this.set("tmp_title", "");
@@ -509,7 +513,7 @@ To use, add `<epiviz-workspace>` in the page
              */
              delete() {
                 var self = this;
-                console.log("delete workspace");
+                // console.log("delete workspace");
             }
 
             validate(title) {
@@ -542,7 +546,7 @@ To use, add `<epiviz-workspace>` in the page
     // window.addEventListener('WebComponentsReady', function() {
         document.addEventListener('WorkspacesLoaded', function() {
             var workspace = getUrlParameter("ws");
-            console.log(workspace);
+            // console.log(workspace);
             if(workspace) {
                 document.querySelector("epiviz-workspace").loadWorkspace(parseInt(workspace));
             }
