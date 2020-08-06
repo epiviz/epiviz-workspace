@@ -158,8 +158,8 @@ To use, add `<epiviz-workspace>` in the page
                 <paper-dialog-scrollable>
                     <paper-input value="{{tmp_title}}" label="Workspace Name"></paper-input>
                     <paper-textarea value="{{tmp_description}}" label="Description"></paper-textarea>
-                    <iron-label>Genome</iron-label>
-                    <paper-tags-input label="Genome" items='{{tmp_genome}}'></paper-tags-input>
+                    <!-- <iron-label>Genome</iron-label>
+                    <paper-tags-input label="Genome" items='{{tmp_genome}}'></paper-tags-input> -->
                     <iron-label>Tags</iron-label>
                     <paper-tags-input label="Tags" items='{{tmp_tags}}'></paper-tags-input>                
                 </paper-dialog-scrollable>
@@ -190,8 +190,8 @@ To use, add `<epiviz-workspace>` in the page
                         <paper-datatable-column header="Actions">
                             <template>
                                 <!-- <span>Delete</span> -->
-                                <paper-icon-button icon="delete"></paper-icon-button>
-                                <paper-icon-button icon="icons:file-download"></paper-icon-button>
+                                <paper-icon-button alt="delete workspace" icon="delete"></paper-icon-button>
+                                <paper-icon-button alt="load workspace" icon="icons:exit-to-app"></paper-icon-button>
                                 <!-- <paper-icon-button on-tap="downloadTapped" icon="file-download"></paper-icon-button> -->
                             </template>
                             </paper-datatable-api-column>
@@ -307,6 +307,7 @@ To use, add `<epiviz-workspace>` in the page
                     //replace with value received from environments
                     if (self.currentWorkspace) {
                         self.currentWorkspace["workspace"][e.detail.id] = e.detail.data;
+                        self.currentWorkspace.genomes = [e.detail.data.genome];
                     } else {
                         self.tmpWorkspace[e.detail.id] = e.detail.data;
                     }
@@ -376,7 +377,7 @@ To use, add `<epiviz-workspace>` in the page
 
                         delete self._workspacesObj[e.detail.item.key];
                     }
-                    else if (e.detail.target.icon == "icons:file-download") {
+                    else if (e.detail.target.icon == "icons:exit-to-app") {
                         self.onLoadWorkspace(e);
                     }
                 }
@@ -425,8 +426,7 @@ To use, add `<epiviz-workspace>` in the page
                 this._updateFlag = true;
             }
 
-            handleUpdateResponse(e) {
-            }
+            handleUpdateResponse(e) {}
 
             handleDeleteResponse(e) {
                 var self = this;
@@ -482,15 +482,15 @@ To use, add `<epiviz-workspace>` in the page
                     user_id: "admin",
                     title:  this.tmp_title,
                     description: this.tmp_description,
-                    genomes: this.tmp_genome,
+                    genomes: [],
                     tags: this.tmp_tags,
                     workspace: {}
                 }
 
                 if(this.tmpWorkspace) {
                     this.currentWorkspace.workspace = this.tmpWorkspace;
+                    this.currentWorkspace.genomes.push(this.tmpWorkspace[Object.keys(this.tmpWorkspace)[0]].genome);
                 }
-
 
                 this.set("currentWorkspace", this.currentWorkspace);
 
@@ -576,9 +576,7 @@ To use, add `<epiviz-workspace>` in the page
             /**
              * Delete Workspace
              */
-             delete() {
-                var self = this;
-            }
+             delete() {}
 
             validate(title) {
                 return /^[a-zA-Z0-9- ]*$/.test(title)
