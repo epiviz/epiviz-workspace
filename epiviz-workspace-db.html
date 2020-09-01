@@ -62,9 +62,6 @@ To use, add `<epiviz-workspace>` in the page
 
     <template>
         <style>
-            paper-dropdown-input {
-                vertical-align: middle;
-            }
 
             /* paper-button {
                 font-family: 'Roboto', 'Noto', sans-serif;
@@ -137,8 +134,10 @@ To use, add `<epiviz-workspace>` in the page
         <div class="workspaceActions">
             <!-- <div style="display:inline-block;" hidden$="{{computeLogoutHidden(user)}}"> 
             disabled="{{computeLogoutHidden(user)}}" -->
-
-            <paper-button raised on-tap="_saveWorkspace" hidden$="{{_showSaveWorkspace(currentWorkspace.*)}}">Save ({{_getWorkspaceTitle(currentWorkspace.*)}})</paper-button>
+            
+            <!-- <div style="display:inline-block" hidden$="{{_isReadonly(readonly)}}"> -->
+                <paper-button raised on-tap="_saveWorkspace" hidden$="{{_showSaveWorkspace(currentWorkspace.*)}}">Save ({{_getWorkspaceTitle(currentWorkspace.*)}})</paper-button>
+            <!-- </div> -->
 
             <paper-menu-button vertical-offset=50>
                 <paper-button raised slot="dropdown-trigger">
@@ -187,10 +186,10 @@ To use, add `<epiviz-workspace>` in the page
                                 <paper-tags prevent-remove-tag readonly items="{{value}}"></paper-tags>
                             </template>
                         </paper-datatable-column>
-                        <paper-datatable-column header="Actions">
+                        <paper-datatable-column header="Actions" property="title">
                             <template>
                                 <!-- <span>Delete</span> -->
-                                <paper-icon-button alt="delete workspace" title="delete workspace" icon="delete"></paper-icon-button>
+                                <paper-icon-button disabled$="{{_getClassDelete(value.*)}}" alt="delete workspace" title="delete workspace" icon="delete"></paper-icon-button>
                                 <paper-icon-button alt="load workspace" title="load workspace" icon="icons:exit-to-app"></paper-icon-button>
                                 <!-- <paper-icon-button on-tap="downloadTapped" icon="file-download"></paper-icon-button> -->
                             </template>
@@ -277,6 +276,12 @@ To use, add `<epiviz-workspace>` in the page
                         type: Array,
                         notify: true,
                         value: []
+                    },
+
+                    readonly: {
+                        type: Boolean,
+                        notify: true,
+                        value: false
                     }
                 }
             }
@@ -312,6 +317,16 @@ To use, add `<epiviz-workspace>` in the page
                         self.tmpWorkspace[e.detail.id] = e.detail.data;
                     }
                 });
+            }
+
+            _isReadOnly() {
+                if (this.readonly) { return true;}
+                return false;
+            }
+
+            _getClassDelete(currentWorkspace) {
+                if (this.readonly) {return true;}
+                return false;
             }
 
             disconnectedCallback() {
@@ -371,11 +386,13 @@ To use, add `<epiviz-workspace>` in the page
                     if (e.detail.target.icon == "delete") {
                         // delete this workspace
 
-                        var ajaxElem = this.$.deletews;
-                        ajaxElem.url = this._getDeleteURL(this._workspacesObj[e.detail.item.key]);
-                        ajaxElem.generateRequest();
+                        if(!self.readonly) {
+                            var ajaxElem = this.$.deletews;
+                            ajaxElem.url = this._getDeleteURL(this._workspacesObj[e.detail.item.key]);
+                            ajaxElem.generateRequest();
 
-                        delete self._workspacesObj[e.detail.item.key];
+                            delete self._workspacesObj[e.detail.item.key];
+                        }
                     }
                     else if (e.detail.target.icon == "icons:exit-to-app") {
                         self.onLoadWorkspace(e);
@@ -444,6 +461,7 @@ To use, add `<epiviz-workspace>` in the page
             }
 
             _showSaveWorkspace(currentWorkspace) {
+                if (this.readonly) { return true;}
                 var currentWorkspace = this.currentWorkspace;
                 if(currentWorkspace == null || currentWorkspace == {} || currentWorkspace == undefined) {
                     return true
@@ -454,7 +472,7 @@ To use, add `<epiviz-workspace>` in the page
 
             _getWorkspaceTitle(currentWorkspace) {
                 var currentWorkspace = this.currentWorkspace;
-                if(!this._showSaveWorkspace(currentWorkspace)) {
+                if(currentWorkspace && !this._showSaveWorkspace(currentWorkspace)) {
                     return currentWorkspace.title.slice(0, 5) + "...";
                 }
 
