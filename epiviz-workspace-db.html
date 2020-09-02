@@ -74,6 +74,11 @@ To use, add `<epiviz-workspace>` in the page
                 vertical-align: middle;
             } */
 
+
+            .saveWorkspaceBold {
+                font-weight: bold;
+            }
+
             .workspaceActions {
                 float: right;
             }
@@ -136,7 +141,17 @@ To use, add `<epiviz-workspace>` in the page
             disabled="{{computeLogoutHidden(user)}}" -->
             
             <!-- <div style="display:inline-block" hidden$="{{_isReadonly(readonly)}}"> -->
-                <paper-button raised on-tap="_saveWorkspace" hidden$="{{_showSaveWorkspace(currentWorkspace.*)}}">Save ({{_getWorkspaceTitle(currentWorkspace.*)}})</paper-button>
+                <paper-button id="saveButton" raised on-tap="_saveWorkspace" hidden$="{{_showSaveWorkspace(currentWorkspace.*)}}">
+                    Save ({{_getWorkspaceTitle(currentWorkspace.*)}})
+                    <!-- <template is="dom-if" if="{{!workspaceSaved}}">
+                        <span style="font-weight: bold;">
+                            Save ({{_getWorkspaceTitle(currentWorkspace.*)}})
+                        </span>
+                      </template>
+                      <template is="dom-if" if="{{workspaceSaved}}">
+                        Save ({{_getWorkspaceTitle(currentWorkspace.*)}})
+                      </template> -->
+                </paper-button>
             <!-- </div> -->
 
             <paper-menu-button vertical-offset=50>
@@ -261,7 +276,7 @@ To use, add `<epiviz-workspace>` in the page
                         value : false
                     },
 
-                                        /**
+                    /**
                      * Array of workspace names to populate dropdown
                      *
                      * @type {Array}
@@ -282,6 +297,13 @@ To use, add `<epiviz-workspace>` in the page
                         type: Boolean,
                         notify: true,
                         value: false
+                    },
+
+                    workspaceSaved: {
+                        type: Boolean,
+                        value: true,
+                        notify: true,
+                        observer: "_workspaceSavedChanged"
                     }
                 }
             }
@@ -296,6 +318,14 @@ To use, add `<epiviz-workspace>` in the page
                 super();
                 this.tmpWorkspace = {};
                 this._workspacesObj = {};
+            }
+
+            _workspaceSavedChanged(newVal, oldVal) {
+                if (!newVal) {
+                    this.$.saveButton.className = "saveWorkspaceBold";
+                    return;
+                }
+                this.$.saveButton.className = "";
             }
 
             /* callback function after the element is attached to the DOM */
@@ -315,6 +345,12 @@ To use, add `<epiviz-workspace>` in the page
                         self.currentWorkspace.genomes = [e.detail.data.genome];
                     } else {
                         self.tmpWorkspace[e.detail.id] = e.detail.data;
+                    }
+
+                    self.workspaceSaved = false;
+
+                    if (self.workspaceLoadedFlag > 0) {
+                        self.workspaceLoadedFlag++;
                     }
                 });
             }
@@ -441,9 +477,12 @@ To use, add `<epiviz-workspace>` in the page
 
                 this.set("tmp_title", "");
                 this._updateFlag = true;
+                this.workspaceSaved = true;
             }
 
-            handleUpdateResponse(e) {}
+            handleUpdateResponse(e) {
+                this.workspaceSaved = true;
+            }
 
             handleDeleteResponse(e) {
                 var self = this;
@@ -480,7 +519,13 @@ To use, add `<epiviz-workspace>` in the page
             }
 
             _saveWorkspace(e) {
-                this._currentWorkspaceChanged(this.currentWorkspace);
+                // this._currentWorkspaceChanged(this.currentWorkspace);
+                if (this.currentWorkspace && this._updateFlag) {
+                    var ajaxElem = this.$.updatews;
+                    ajaxElem.body = this.currentWorkspace;
+
+                    ajaxElem.generateRequest();
+                }
             }
 
             /**
@@ -556,6 +601,8 @@ To use, add `<epiviz-workspace>` in the page
                 var ajaxElem = this.$.getws;
                 ajaxElem.url = this.api + id;
                 ajaxElem.generateRequest();
+                self.saveWorkspace = true;
+                self.workspaceLoadedFlag++;
             }
 
             _getUpdateURL(cw) {
@@ -575,12 +622,7 @@ To use, add `<epiviz-workspace>` in the page
             }
 
             _currentWorkspaceChanged(newVal, oldVal) {
-                if (newVal && this._updateFlag) {
-                    var ajaxElem = this.$.updatews;
-                    ajaxElem.body = this.currentWorkspace;
-
-                    ajaxElem.generateRequest();
-                }
+                this.workspaceSaved = false;
             }
 
             _selectionChanged(e) {
