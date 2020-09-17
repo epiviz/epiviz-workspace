@@ -25,6 +25,8 @@
 <link rel="import" href="../paper-tags/paper-tags.html">
 <link rel="import" href="../bwt-datatable/bwt-datatable.html">
 
+<!-- <link rel="import" href="components/polymer/lib/elements/dom-if.html"> -->
+
 <script>
     // window.addEventListener('WebComponentsReady', function() {
         document.addEventListener('WorkspacesReady', function() {
@@ -81,6 +83,10 @@ To use, add `<epiviz-workspace>` in the page
 
             .workspaceActions {
                 float: right;
+            }
+
+            .hidden {
+                display: none !important;
             }
 
             /* .buttons {
@@ -154,7 +160,7 @@ To use, add `<epiviz-workspace>` in the page
                 </paper-button>
             <!-- </div> -->
 
-            <paper-menu-button vertical-offset=50>
+            <paper-menu-button class$="{{_getWorkspaceClass()}}" vertical-offset=50>
                 <paper-button raised slot="dropdown-trigger">
                     <span>Workspace</span>
                     <iron-icon icon="icons:arrow-drop-down"></iron-icon>
@@ -304,6 +310,11 @@ To use, add `<epiviz-workspace>` in the page
                         value: true,
                         notify: true,
                         observer: "_workspaceSavedChanged"
+                    },
+
+                    workspaceLoadCounter: {
+                        type: Number,
+                        value: 0
                     }
                 }
             }
@@ -320,8 +331,12 @@ To use, add `<epiviz-workspace>` in the page
                 this._workspacesObj = {};
             }
 
+            _getWorkspaceClass () {
+                return this.readonly ? "hidden" : "";
+            }
+
             _workspaceSavedChanged(newVal, oldVal) {
-                if (!newVal) {
+                if (!newVal && this.workspaceLoadCounter > 0) {
                     this.$.saveButton.className = "saveWorkspaceBold";
                     return;
                 }
@@ -349,9 +364,7 @@ To use, add `<epiviz-workspace>` in the page
 
                     self.workspaceSaved = false;
 
-                    if (self.workspaceLoadedFlag > 0) {
-                        self.workspaceLoadedFlag++;
-                    }
+                    self.workspaceLoadCounter++;
                 });
             }
 
@@ -602,7 +615,6 @@ To use, add `<epiviz-workspace>` in the page
                 ajaxElem.url = this.api + id;
                 ajaxElem.generateRequest();
                 self.saveWorkspace = true;
-                self.workspaceLoadedFlag++;
             }
 
             _getUpdateURL(cw) {
