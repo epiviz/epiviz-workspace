@@ -1,12 +1,6 @@
 <!-- Polymer dependency -->
 <link rel="import" href="../polymer/polymer-element.html">
 
-<!-- External Polymer imports dependency -->
-<link rel="import" href="../polymerfire/firebase.html">
-<link rel="import" href="../polymerfire/firebase-app.html">
-<link rel="import" href="../polymerfire/firebase-auth.html">
-<link rel="import" href="../polymerfire/firebase-document.html">
-
 <!-- Style imports -->
 <link rel="import" href="../iron-icons/iron-icons.html">
 <link rel="import" href="../iron-label/iron-label.html">
@@ -31,8 +25,13 @@
     // window.addEventListener('WebComponentsReady', function() {
         document.addEventListener('WorkspacesReady', function() {
             var workspace = getUrlParameter("ws");
+            var wid = getUrlParameter("wid");
             if(workspace) {
-                document.querySelector("epiviz-workspace").loadWorkspace(parseInt(workspace));
+                // document.querySelector("epiviz-workspace").loadWorkspace(parseInt(workspace));
+                document.querySelector("epiviz-app").shadowRoot.querySelector("epiviz-workspace").loadWorkspace(parseInt(workspace));
+            }
+            if(wid) {
+                document.querySelector("epiviz-app").shadowRoot.querySelector("epiviz-workspace").loadWorkspaceUUID(wid);
             }
         });
     // });
@@ -81,9 +80,9 @@ To use, add `<epiviz-workspace>` in the page
                 font-weight: bold;
             }
 
-            .workspaceActions {
+            /* .workspaceActions {
                 float: right;
-            }
+            } */
 
             .hidden {
                 display: none !important;
@@ -147,8 +146,9 @@ To use, add `<epiviz-workspace>` in the page
             disabled="{{computeLogoutHidden(user)}}" -->
             
             <!-- <div style="display:inline-block" hidden$="{{_isReadonly(readonly)}}"> -->
-                <paper-button id="saveButton" raised on-tap="_saveWorkspace" hidden$="{{_showSaveWorkspace(currentWorkspace.*)}}">
-                    Save ({{_getWorkspaceTitle(currentWorkspace.*)}})
+                <span>(Workspace: {{_getWorkspaceTitle(currentWorkspace.*, user)}})</span>
+                <paper-button id="saveButton" raised on-tap="_saveWorkspace" hidden$="{{_showSaveWorkspace(currentWorkspace.*, user)}}">
+                    Save
                     <!-- <template is="dom-if" if="{{!workspaceSaved}}">
                         <span style="font-weight: bold;">
                             Save ({{_getWorkspaceTitle(currentWorkspace.*)}})
@@ -166,7 +166,8 @@ To use, add `<epiviz-workspace>` in the page
                     <iron-icon icon="icons:arrow-drop-down"></iron-icon>
                   </paper-button>
                 <paper-listbox slot="dropdown-content">
-                    <paper-item on-tap="_newWorkspace">Create New Workspace</paper-item>
+                    <paper-item on-tap="_newWorkspace">Create Empty Workspace</paper-item>
+                    <paper-item on-tap="_forkWorkspace">Extend Current Workspace</paper-item>
                     <paper-item on-tap="_loadWorkspace">Manage Workspaces</paper-item>
                     <!-- <paper-item on-tap="_saveWorkspace">Save Workspace</paper-item> -->
                 </paper-listbox>
@@ -210,7 +211,7 @@ To use, add `<epiviz-workspace>` in the page
                         <paper-datatable-column header="Actions" property="title">
                             <template>
                                 <!-- <span>Delete</span> -->
-                                <paper-icon-button disabled$="{{_getClassDelete(value.*)}}" alt="delete workspace" title="delete workspace" icon="delete"></paper-icon-button>
+                                <paper-icon-button disabled$="{{_getClassDelete(value)}}" alt="delete workspace" title="delete workspace" icon="delete"></paper-icon-button>
                                 <paper-icon-button alt="load workspace" title="load workspace" icon="icons:exit-to-app"></paper-icon-button>
                                 <!-- <paper-icon-button on-tap="downloadTapped" icon="file-download"></paper-icon-button> -->
                             </template>
@@ -240,12 +241,21 @@ To use, add `<epiviz-workspace>` in the page
                  * @type {Object}
                  */
                     user: {
-                        type: Object,
-                        value: null,
+                        type: String,
+                        notify: true
+                    },
+
+                    userToken: {
+                        type: String,
                         notify: true
                     },
 
                     api: {
+                        type: String,
+                        notify: true
+                    },
+
+                    metadataApi: {
                         type: String,
                         notify: true
                     },
@@ -363,7 +373,6 @@ To use, add `<epiviz-workspace>` in the page
                     }
 
                     self.workspaceSaved = false;
-
                     self.workspaceLoadCounter++;
                 });
             }
@@ -414,9 +423,9 @@ To use, add `<epiviz-workspace>` in the page
                 self._workspacesObj = {}
                 var names = [];
                 resp.forEach(function(res) {
-                    names.push({ "title": res.title, "key": res.id, "description": res.description, "genomes": res.genomes, "tags": res.tags });
+                    names.push({ "user_id":res.user_id, "title": res.title, "key": res.workspace_uuid, "description": res.description, "genomes": res.genomes, "tags": res.tags });
                     // names[res.id] = res.title;
-                    self._workspacesObj[res.id] = res;
+                    self._workspacesObj[res.workspace_uuid] = res;
                 });
 
                 self.values = names;
@@ -438,6 +447,7 @@ To use, add `<epiviz-workspace>` in the page
                         if(!self.readonly) {
                             var ajaxElem = this.$.deletews;
                             ajaxElem.url = this._getDeleteURL(this._workspacesObj[e.detail.item.key]);
+                            ajaxElem.headers = {"Authorization": "Bearer " + self.userToken};
                             ajaxElem.generateRequest();
 
                             delete self._workspacesObj[e.detail.item.key];
@@ -457,7 +467,7 @@ To use, add `<epiviz-workspace>` in the page
 
                 var names = JSON.parse(JSON.stringify(self.values));
 
-                names.push({ "title": e.detail.response.title, "key": e.detail.response.id,
+                names.push({ "title": e.detail.response.title, "key": e.detail.response.workspace_uuid,
                                 "description": e.detail.response.description, "genomes": e.detail.response.genomes, 
                                 "tags": e.detail.response.tags 
                             });
@@ -467,10 +477,10 @@ To use, add `<epiviz-workspace>` in the page
 
                 // its in a wierd state where workspace is created after adding tracks
                 //  TODO: this only works for now
-                var elem = document.querySelector(this.targetSelector).querySelector("epiviz-navigation");
+                var elem = document.querySelector("epiviz-app").shadowRoot.querySelector(this.targetSelector).querySelector("epiviz-navigation");
                 elem.saveWorkspace();
 
-                window.history.replaceState("workspace", '', "?ws=" + e.detail.response.id);
+                window.history.replaceState("workspace", '', window.location.pathname + "?wid=" + e.detail.response.workspace_uuid);
 
                 this._updateFlag = true;
             }
@@ -479,18 +489,51 @@ To use, add `<epiviz-workspace>` in the page
                 var self = this;
                 this.currentWorkspace = e.detail.response;
 
-                $(self.targetSelector).empty();
+                // $(self.targetSelector).empty();
+                if (document.querySelector("epiviz-app").shadowRoot.querySelector("epiviz-navigation")) {
+                    document.querySelector("epiviz-app").shadowRoot.querySelector("epiviz-navigation").remove();
+                }
 
                 for (var env in self.currentWorkspace.workspace) {
                     var elem = document.createElement(self.currentWorkspace.workspace[env].node);
                     elem.setAttribute("plot-id", env);
                     elem.setAttribute("workspace", JSON.stringify(self.currentWorkspace.workspace[env]));
-                    $(self.targetSelector).append(elem);
+                    elem.setAttribute("ms-api", self.metadataApi);
+
+                    // $(self.targetSelector).append(elem);
+                    document.querySelector("epiviz-app").shadowRoot.querySelector(self.targetSelector).append(elem);
+
+                }
+
+                var ws = this.getUrlParameter("ws");
+                if (ws && ws != "") {
+                    var gene = this.getUrlParameter("gene");
+                    if (gene && gene != "") {
+                        window.history.replaceState("gene", '', window.location.pathname + 
+                                "?wid=" + e.detail.response.workspace_uuid + "&gene=" + gene);
+                    }
+                    else {
+                        window.history.replaceState("gene", '', window.location.pathname + 
+                                "?wid=" + e.detail.response.workspace_uuid);
+                    }
                 }
 
                 this.set("tmp_title", "");
                 this._updateFlag = true;
                 this.workspaceSaved = true;
+            }
+
+            getUrlParameter(sParam) {
+                var currPage = decodeURIComponent(window.location.search.substring(1));
+                var pageVars = currPage.split('&');
+
+                for (var i = 0; i < pageVars.length; i++) {
+                    var pageParamName = pageVars[i].split('=');
+
+                    if (pageParamName[0] === sParam) {
+                        return pageParamName[1] === undefined ? true : pageParamName[1];
+                    }
+                }
             }
 
             handleUpdateResponse(e) {
@@ -503,7 +546,7 @@ To use, add `<epiviz-workspace>` in the page
                 var names = [];
                 Object.keys(self._workspacesObj).forEach(function(m) {
                     var elem = self._workspacesObj[m];
-                    names.push({ "title": elem.title, "key": elem.id,
+                    names.push({ "title": elem.title, "key": elem.workspace_uuid,
                     "description": elem.description, "genomes": elem.genomes, 
                                 "tags": elem.tags });
                 });
@@ -512,30 +555,36 @@ To use, add `<epiviz-workspace>` in the page
                 self.set("values", names)
             }
 
-            _showSaveWorkspace(currentWorkspace) {
+            _showSaveWorkspace(currentWorkspace, user) {
                 if (this.readonly) { return true;}
                 var currentWorkspace = this.currentWorkspace;
                 if(currentWorkspace == null || currentWorkspace == {} || currentWorkspace == undefined) {
                     return true
+                } else {
+                    if (currentWorkspace.user_id != this.user) {
+                        return true;
+                    }
                 }
 
                 return false
             }
 
-            _getWorkspaceTitle(currentWorkspace) {
+            _getWorkspaceTitle(currentWs, user) {
                 var currentWorkspace = this.currentWorkspace;
-                if(currentWorkspace && !this._showSaveWorkspace(currentWorkspace)) {
-                    return currentWorkspace.title.slice(0, 5) + "...";
+                if(currentWorkspace) {
+                    return currentWorkspace.title; //.slice(0, 5) + "...";
                 }
 
                 return ""
             }
 
             _saveWorkspace(e) {
+                var self = this;
                 // this._currentWorkspaceChanged(this.currentWorkspace);
                 if (this.currentWorkspace && this._updateFlag) {
                     var ajaxElem = this.$.updatews;
                     ajaxElem.body = this.currentWorkspace;
+                    ajaxElem.headers = {"Authorization": "Bearer " + self.userToken};
 
                     ajaxElem.generateRequest();
                 }
@@ -545,27 +594,73 @@ To use, add `<epiviz-workspace>` in the page
              * Dialog for creating a new Workspace
              */
              _newWorkspace(e) {
+                var self = this;
+                self.tmpWorkspace = {};
+                self.currentWorkspace = null;
+
+                if (document.querySelector("epiviz-app").shadowRoot.querySelector("epiviz-navigation")) {
+                    document.querySelector("epiviz-app")
+                        .shadowRoot.querySelector("epiviz-navigation").remove();
+                }
+                var elem = document.createElement("epiviz-navigation");
+                elem.setAttribute("genome", "hg38");
+                elem.setAttribute("gene", "BIN1");
+                elem.setAttribute("no-logo", true)
+                elem.setAttribute("ms-api", self.metadataApi);
+
+                document.querySelector("epiviz-app")
+                    .shadowRoot.querySelector(self.targetSelector).append(elem);
+
+                self.newWsFlag = true;
+
+                this.$.createWorkspace.open();
+            }           
+
+
+            /**
+             * Dialog to fork a new Workspace
+             */
+             _forkWorkspace(e) {
+                self.newWsFlag = false;
                 this.$.createWorkspace.open();
             }
 
             onCreateWorkspace(e) {
-                var new_workspace_id = this._generateWorkspaceId();
-
-                this.set("workspaceId", new_workspace_id);
+                var self = this;
                 this.set("title", this.tmp_title);
 
-                this.currentWorkspace = {
-                    user_id: "admin",
-                    title:  this.tmp_title,
-                    description: this.tmp_description,
-                    genomes: [],
-                    tags: this.tmp_tags,
-                    workspace: {}
-                }
+                if (!self.newWsFlag) {
 
-                if(this.tmpWorkspace) {
-                    this.currentWorkspace.workspace = this.tmpWorkspace;
-                    this.currentWorkspace.genomes.push(this.tmpWorkspace[Object.keys(this.tmpWorkspace)[0]].genome);
+                    var fork_workspace = this.currentWorkspace.workspace;
+                    var fork_genomes = this.currentWorkspace.genomes;
+
+                    this.currentWorkspace = {
+                        user_id: this.user,
+                        title:  this.tmp_title,
+                        description: this.tmp_description,
+                        genomes: fork_genomes,
+                        tags: this.tmp_tags,
+                        workspace: fork_workspace
+                    }
+                } else {
+                    var new_workspace_id = this._generateWorkspaceId();
+
+                    // this.set("workspaceId", new_workspace_id);
+                    // this.set("title", this.tmp_title);
+
+                    this.currentWorkspace = {
+                        user_id: this.user,
+                        title:  this.tmp_title,
+                        description: this.tmp_description,
+                        genomes: [],
+                        tags: this.tmp_tags,
+                        workspace: {}
+                    }
+
+                    if(this.tmpWorkspace) {
+                        this.currentWorkspace.workspace = this.tmpWorkspace;
+                        this.currentWorkspace.genomes.push(this.tmpWorkspace[Object.keys(this.tmpWorkspace)[0]].genome);
+                    }
                 }
 
                 this.set("currentWorkspace", this.currentWorkspace);
@@ -579,7 +674,16 @@ To use, add `<epiviz-workspace>` in the page
              * Load an existing Workspace
              */
              _loadWorkspace(e) {
+                var self = this;
+                // var ajaxElem = this.$.getallws;
                 var ajaxElem = this.$.getallws;
+                ajaxElem.url = this.api + "user/" + this.user;
+                ajaxElem.headers = {"Authorization": "Bearer " + self.userToken};
+
+                ajaxElem.generateRequest();
+                self.saveWorkspace = true;
+
+
                 ajaxElem.generateRequest();
             }
 
@@ -588,17 +692,22 @@ To use, add `<epiviz-workspace>` in the page
                 this.currentWorkspace = this._workspacesObj[e.detail.item.key];
                 // this.set("title", this.tmp_title.title);
 
-                $(self.targetSelector).empty();
+                // $(self.targetSelector).empty();
+                if (document.querySelector("epiviz-app").shadowRoot.querySelector("epiviz-navigation")) {
+                    document.querySelector("epiviz-app").shadowRoot.querySelector("epiviz-navigation").remove();
+                }
 
                 for (var env in self.currentWorkspace.workspace) {
                     var elem = document.createElement(self.currentWorkspace.workspace[env].node);
                     elem.setAttribute("plot-id", env);
                     elem.setAttribute("workspace", JSON.stringify(self.currentWorkspace.workspace[env]));
-                    $(self.targetSelector).append(elem);
+                    elem.setAttribute("ms-api", self.metadataApi);
+                    // $(self.targetSelector).append(elem);
+                    document.querySelector("epiviz-app").shadowRoot.querySelector(self.targetSelector).append(elem);
                     // elem.loadWorkspace(elem.workspace);
                 }
 
-                window.history.replaceState("workspace", '', "?ws=" + e.detail.item.key);
+                window.history.replaceState("workspace", '', window.location.pathname + "?wid=" + e.detail.item.key);
 
                 this.$.loadWorkspace.close();
 
@@ -613,6 +722,15 @@ To use, add `<epiviz-workspace>` in the page
 
                 var ajaxElem = this.$.getws;
                 ajaxElem.url = this.api + id;
+                ajaxElem.generateRequest();
+                self.saveWorkspace = true;
+            }
+
+            loadWorkspaceUUID(id) {
+                var self = this;
+
+                var ajaxElem = this.$.getws;
+                ajaxElem.url = this.api + "uuid/" + id;
                 ajaxElem.generateRequest();
                 self.saveWorkspace = true;
             }
@@ -648,7 +766,7 @@ To use, add `<epiviz-workspace>` in the page
             /**
              * Delete Workspace
              */
-             delete() {}
+            delete() {}
 
             validate(title) {
                 return /^[a-zA-Z0-9- ]*$/.test(title)
