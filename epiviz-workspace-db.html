@@ -24,15 +24,18 @@
 <script>
     // window.addEventListener('WebComponentsReady', function() {
         document.addEventListener('WorkspacesReady', function() {
-            var workspace = getUrlParameter("ws");
-            var wid = getUrlParameter("wid");
-            if(workspace) {
-                // document.querySelector("epiviz-workspace").loadWorkspace(parseInt(workspace));
-                document.querySelector("epiviz-app").shadowRoot.querySelector("epiviz-workspace").loadWorkspace(parseInt(workspace));
-            }
-            if(wid) {
-                document.querySelector("epiviz-app").shadowRoot.querySelector("epiviz-workspace").loadWorkspaceUUID(wid);
-            }
+            // const wsflag = JSON.parse(localStorage.getItem('workspaceLoginRefreshed'));
+            // if (!wsflag) {
+                var workspace = getUrlParameter("ws");
+                var wid = getUrlParameter("wid");
+                if(workspace) {
+                    // document.querySelector("epiviz-workspace").loadWorkspace(parseInt(workspace));
+                    document.querySelector("epiviz-app").shadowRoot.querySelector("epiviz-workspace").loadWorkspace(parseInt(workspace));
+                }
+                if(wid) {
+                    document.querySelector("epiviz-app").shadowRoot.querySelector("epiviz-workspace").loadWorkspaceUUID(wid);
+                }
+            // }
         });
     // });
 
@@ -80,12 +83,22 @@ To use, add `<epiviz-workspace>` in the page
                 font-weight: bold;
             }
 
+            .ws{
+                font-family: 'Roboto', 'Noto', sans-serif;
+                font-size: 16px;
+            }
+
             /* .workspaceActions {
                 float: right;
             } */
 
             .hidden {
                 display: none !important;
+            }
+
+            #createWorkspace, #editWorkspace {
+                padding: 25px;
+                width: 75%;
             }
 
             /* .buttons {
@@ -134,6 +147,15 @@ To use, add `<epiviz-workspace>` in the page
         </iron-ajax>
 
         <iron-ajax
+            id="editws"
+            method="PUT"
+            content-type="application/json"
+            handle-as="json"
+            on-response="handleEditResponse"
+            debounce-duration="300">
+        </iron-ajax>
+
+        <iron-ajax
             id="deletews"
             method="DELETE"
             handle-as="json"
@@ -145,11 +167,13 @@ To use, add `<epiviz-workspace>` in the page
             <!-- <div style="display:inline-block;" hidden$="{{computeLogoutHidden(user)}}"> 
             disabled="{{computeLogoutHidden(user)}}" -->
             
+            <iron-label class="ws" hidden$="[[_showSaveWorkspace(currentWorkspace.*, user)]]" >(Workspace: {{_getWorkspaceTitle(currentWorkspace.*, user)}})</iron-label>
             <!-- <div style="display:inline-block" hidden$="{{_isReadonly(readonly)}}"> -->
-                <span>(Workspace: {{_getWorkspaceTitle(currentWorkspace.*, user)}})</span>
+                <!-- <span>(Workspace: {{_getWorkspaceTitle(currentWorkspace.*, user)}})</span>
                 <paper-button id="saveButton" raised on-tap="_saveWorkspace" hidden$="{{_showSaveWorkspace(currentWorkspace.*, user)}}">
                     Save
-                    <!-- <template is="dom-if" if="{{!workspaceSaved}}">
+                </paper-button> -->
+                                    <!-- <template is="dom-if" if="{{!workspaceSaved}}">
                         <span style="font-weight: bold;">
                             Save ({{_getWorkspaceTitle(currentWorkspace.*)}})
                         </span>
@@ -157,7 +181,6 @@ To use, add `<epiviz-workspace>` in the page
                       <template is="dom-if" if="{{workspaceSaved}}">
                         Save ({{_getWorkspaceTitle(currentWorkspace.*)}})
                       </template> -->
-                </paper-button>
             <!-- </div> -->
 
             <paper-menu-button class$="{{_getWorkspaceClass()}}" vertical-offset=50>
@@ -166,8 +189,10 @@ To use, add `<epiviz-workspace>` in the page
                     <iron-icon icon="icons:arrow-drop-down"></iron-icon>
                   </paper-button>
                 <paper-listbox slot="dropdown-content">
+                    <paper-item hidden$="{{_showSaveWorkspace(currentWorkspace.*, user)}}" on-tap="_saveWorkspace">Save</paper-item>
+                    <paper-item hidden$="[[!enableExtend]]" on-tap="_forkWorkspace">Save as New Workspace</paper-item>
+                    <paper-item hidden$="[[enableExtend]]" on-tap="_saveTmpWorkspace">Save as New Workspace</paper-item>
                     <paper-item on-tap="_newWorkspace">Create Empty Workspace</paper-item>
-                    <paper-item on-tap="_forkWorkspace">Extend Current Workspace</paper-item>
                     <paper-item on-tap="_loadWorkspace">Manage Workspaces</paper-item>
                     <!-- <paper-item on-tap="_saveWorkspace">Save Workspace</paper-item> -->
                 </paper-listbox>
@@ -178,7 +203,7 @@ To use, add `<epiviz-workspace>` in the page
                 <h2>Create new workspace</h2>
                 <paper-dialog-scrollable>
                     <paper-input value="{{tmp_title}}" label="Workspace Name"></paper-input>
-                    <paper-textarea value="{{tmp_description}}" label="Description"></paper-textarea>
+                    <paper-textarea rows="5" value="{{tmp_description}}" label="Description"></paper-textarea>
                     <!-- <iron-label>Genome</iron-label>
                     <paper-tags-input label="Genome" items='{{tmp_genome}}'></paper-tags-input> -->
                     <iron-label>Tags</iron-label>
@@ -187,6 +212,22 @@ To use, add `<epiviz-workspace>` in the page
                 <div class="buttons">
                     <paper-button dialog-dismiss>Close</paper-button>
                     <paper-button on-tap="onCreateWorkspace" dialog-confirm autofocus>Create</paper-button>
+                </div>
+            </paper-dialog>
+
+            <paper-dialog id="editWorkspace" modal>
+                <h2>Edit workspace</h2>
+                <paper-dialog-scrollable>
+                    <paper-input value="{{edit.title}}" label="Workspace Name"></paper-input>
+                    <paper-textarea rows="5" value="{{edit.description}}" label="Description"></paper-textarea>
+                    <!-- <iron-label>Genome</iron-label>
+                    <paper-tags-input label="Genome" items='{{tmp_genome}}'></paper-tags-input> -->
+                    <iron-label>Tags</iron-label>
+                    <paper-tags-input label="Tags" items='{{edit.tags}}'></paper-tags-input>                
+                </paper-dialog-scrollable>
+                <div class="buttons">
+                    <paper-button dialog-dismiss>Close</paper-button>
+                    <paper-button on-tap="onEditWorkspace" dialog-confirm autofocus>Save</paper-button>
                 </div>
             </paper-dialog>
 
@@ -211,7 +252,8 @@ To use, add `<epiviz-workspace>` in the page
                         <paper-datatable-column header="Actions" property="title">
                             <template>
                                 <!-- <span>Delete</span> -->
-                                <paper-icon-button disabled$="{{_getClassDelete(value)}}" alt="delete workspace" title="delete workspace" icon="delete"></paper-icon-button>
+                                <paper-icon-button disabled$="{{_getClassDelete(value, item)}}" alt="Delete workspace" title="delete workspace" icon="delete"></paper-icon-button>
+                                <paper-icon-button alt="edit workspace" title="edit workspace" icon="editor:mode-edit"></paper-icon-button>
                                 <paper-icon-button alt="load workspace" title="load workspace" icon="icons:exit-to-app"></paper-icon-button>
                                 <!-- <paper-icon-button on-tap="downloadTapped" icon="file-download"></paper-icon-button> -->
                             </template>
@@ -319,12 +361,32 @@ To use, add `<epiviz-workspace>` in the page
                         type: Boolean,
                         value: true,
                         notify: true,
-                        observer: "_workspaceSavedChanged"
+                        // observer: "_workspaceSavedChanged"
                     },
 
                     workspaceLoadCounter: {
                         type: Number,
                         value: 0
+                    },
+
+                    enableExtend: {
+                        type: Boolean,
+                        value: false
+                    },
+
+                    newWsFlag: {
+                        type: Boolean,
+                        value: false
+                    },
+
+                    saveTmp: {
+                        type: Boolean,
+                        value:false
+                    },
+
+                    edit: {
+                        type: Object,
+                        notify: true
                     }
                 }
             }
@@ -345,13 +407,13 @@ To use, add `<epiviz-workspace>` in the page
                 return this.readonly ? "hidden" : "";
             }
 
-            _workspaceSavedChanged(newVal, oldVal) {
-                if (!newVal && this.workspaceLoadCounter > 0) {
-                    this.$.saveButton.className = "saveWorkspaceBold";
-                    return;
-                }
-                this.$.saveButton.className = "";
-            }
+            // _workspaceSavedChanged(newVal, oldVal) {
+            //     if (!newVal && this.workspaceLoadCounter > 0) {
+            //         this.$.saveButton.className = "saveWorkspaceBold";
+            //         return;
+            //     }
+            //     this.$.saveButton.className = "";
+            // }
 
             /* callback function after the element is attached to the DOM */
             connectedCallback() {
@@ -366,9 +428,11 @@ To use, add `<epiviz-workspace>` in the page
                 document.addEventListener('workspaceChanged', function (e) {
                     //replace with value received from environments
                     if (self.currentWorkspace) {
+                        self.currentWorkspace["workspace"] = {};
                         self.currentWorkspace["workspace"][e.detail.id] = e.detail.data;
                         self.currentWorkspace.genomes = [e.detail.data.genome];
                     } else {
+                        self.tmpWorkspace = {};
                         self.tmpWorkspace[e.detail.id] = e.detail.data;
                     }
 
@@ -377,13 +441,21 @@ To use, add `<epiviz-workspace>` in the page
                 });
             }
 
+            _showFork(currentWorkspace) {
+
+            }
+
             _isReadOnly() {
                 if (this.readonly) { return true;}
                 return false;
             }
 
-            _getClassDelete(currentWorkspace) {
+            _getClassDelete(value, item) {
                 if (this.readonly) {return true;}
+
+                if (this.currentWorkspace && this.currentWorkspace.workspace_uuid == item.key) {
+                    return true;
+                }
                 return false;
             }
 
@@ -452,6 +524,9 @@ To use, add `<epiviz-workspace>` in the page
 
                             delete self._workspacesObj[e.detail.item.key];
                         }
+                    }
+                    else if(e.detail.target.icon == "editor:mode-edit") {
+                        self.editWorkspace(e);
                     }
                     else if (e.detail.target.icon == "icons:exit-to-app") {
                         self.onLoadWorkspace(e);
@@ -553,6 +628,8 @@ To use, add `<epiviz-workspace>` in the page
 
                 self.values = names;
                 self.set("values", names)
+
+                this._refitModal();
             }
 
             _showSaveWorkspace(currentWorkspace, user) {
@@ -612,6 +689,7 @@ To use, add `<epiviz-workspace>` in the page
                     .shadowRoot.querySelector(self.targetSelector).append(elem);
 
                 self.newWsFlag = true;
+                self.saveTmp = false;
 
                 this.$.createWorkspace.open();
             }           
@@ -621,7 +699,16 @@ To use, add `<epiviz-workspace>` in the page
              * Dialog to fork a new Workspace
              */
              _forkWorkspace(e) {
+                var self = this;
                 self.newWsFlag = false;
+                self.saveTmp = false;
+                this.$.createWorkspace.open();
+            }
+
+            _saveTmpWorkspace(e) {
+                var self = this;
+                self.newWsFlag = false;
+                self.saveTmp = true;
                 this.$.createWorkspace.open();
             }
 
@@ -631,17 +718,37 @@ To use, add `<epiviz-workspace>` in the page
 
                 if (!self.newWsFlag) {
 
-                    var fork_workspace = this.currentWorkspace.workspace;
-                    var fork_genomes = this.currentWorkspace.genomes;
+                    if(self.saveTmp) {
 
-                    this.currentWorkspace = {
-                        user_id: this.user,
-                        title:  this.tmp_title,
-                        description: this.tmp_description,
-                        genomes: fork_genomes,
-                        tags: this.tmp_tags,
-                        workspace: fork_workspace
+                        var tmp_workspace = this.tmpWorkspace;
+                        var tmp_genomes = [this.tmpWorkspace[Object.keys(this.tmpWorkspace)[0]].genome];
+
+                        // var tmp_workspace = this.tmpWorkspace.workspace;
+                        // var tmp_genomes = this.tmpWorkspace.genomes;
+
+                        this.currentWorkspace = {
+                            user_id: this.user,
+                            title:  this.tmp_title,
+                            description: this.tmp_description,
+                            genomes: tmp_genomes,
+                            tags: this.tmp_tags,
+                            workspace: tmp_workspace
+                        }
+
+                    } else {
+                        var fork_workspace = this.currentWorkspace.workspace;
+                        var fork_genomes = this.currentWorkspace.genomes;
+
+                        this.currentWorkspace = {
+                            user_id: this.user,
+                            title:  this.tmp_title,
+                            description: this.tmp_description,
+                            genomes: fork_genomes,
+                            tags: this.tmp_tags,
+                            workspace: fork_workspace
+                        }
                     }
+
                 } else {
                     var new_workspace_id = this._generateWorkspaceId();
 
@@ -670,19 +777,63 @@ To use, add `<epiviz-workspace>` in the page
                 ajaxElem.generateRequest();
             }
 
+            editWorkspace(e) {
+                this.edit = e.detail.item;
+                console.log("BEFORE");
+                console.log(this.edit);
+                this.$.editWorkspace.open();
+            }
+
+            onEditWorkspace(e) {
+
+                var needUpdateWorkspace = this._workspacesObj[this.edit.key];
+                // set things on update
+                needUpdateWorkspace["title"] = this.edit["title"];
+                needUpdateWorkspace["description"] = this.edit["description"];
+                needUpdateWorkspace["tags"] = this.edit["tags"]
+
+                if (this.currentWorkspace && this.currentWorkspace.id == needUpdateWorkspace.id) {
+                    this.currentWorkspace = needUpdateWorkspace
+                }
+
+                var self = this;
+                var ajaxElem = this.$.editws;
+                ajaxElem.url = this.api + needUpdateWorkspace.id;
+                ajaxElem.body = needUpdateWorkspace;
+                ajaxElem.headers = {"Authorization": "Bearer " + self.userToken};
+
+                ajaxElem.generateRequest();
+            }
+
+            handleEditResponse() {
+                var self = this;
+                var ajaxElem = this.$.getallws;
+                ajaxElem.url = this.api + "user/" + this.user;
+                ajaxElem.headers = {"Authorization": "Bearer " + self.userToken};
+
+                // ajaxElem.generateRequest();
+                // self.saveWorkspace = true;
+
+                ajaxElem.generateRequest();
+
+                this._refitModal();
+            }
+
+            _refitModal() {
+                setTimeout(() => this.$.loadWorkspace.refit(), 0);
+            }
+
             /**
              * Load an existing Workspace
              */
              _loadWorkspace(e) {
                 var self = this;
-                // var ajaxElem = this.$.getallws;
                 var ajaxElem = this.$.getallws;
                 ajaxElem.url = this.api + "user/" + this.user;
                 ajaxElem.headers = {"Authorization": "Bearer " + self.userToken};
 
-                ajaxElem.generateRequest();
+                // ajaxElem.generateRequest();
                 self.saveWorkspace = true;
-
 
                 ajaxElem.generateRequest();
             }
@@ -724,6 +875,7 @@ To use, add `<epiviz-workspace>` in the page
                 ajaxElem.url = this.api + id;
                 ajaxElem.generateRequest();
                 self.saveWorkspace = true;
+                self.enableExtend = true;
             }
 
             loadWorkspaceUUID(id) {
@@ -733,6 +885,7 @@ To use, add `<epiviz-workspace>` in the page
                 ajaxElem.url = this.api + "uuid/" + id;
                 ajaxElem.generateRequest();
                 self.saveWorkspace = true;
+                self.enableExtend = true;
             }
 
             _getUpdateURL(cw) {
