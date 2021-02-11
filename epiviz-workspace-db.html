@@ -176,7 +176,7 @@ To use, add `<epiviz-workspace>` in the page
             <!-- <div style="display:inline-block;" hidden$="{{computeLogoutHidden(user)}}"> 
             disabled="{{computeLogoutHidden(user)}}" -->
             
-            <iron-label class="ws" hidden$="[[_showSaveWorkspace(currentWorkspace.*, user)]]" >(Workspace: {{_getWorkspaceTitle(currentWorkspace.*, user)}})</iron-label>
+            <iron-label class="ws" hidden$="[[_showTitle(currentWorkspace.*)]]" >(Workspace: {{_getWorkspaceTitle(currentWorkspace.*, user)}})</iron-label>
             <!-- <div style="display:inline-block" hidden$="{{_isReadonly(readonly)}}"> -->
                 <!-- <span>(Workspace: {{_getWorkspaceTitle(currentWorkspace.*, user)}})</span>
                 <paper-button id="saveButton" raised on-tap="_saveWorkspace" hidden$="{{_showSaveWorkspace(currentWorkspace.*, user)}}">
@@ -581,6 +581,7 @@ To use, add `<epiviz-workspace>` in the page
                 for (var env in self.currentWorkspace.workspace) {
                     var elem = document.createElement(self.currentWorkspace.workspace[env].node);
                     elem.setAttribute("plot-id", env);
+                    elem.setAttribute("genome", self.currentWorkspace.workspace[env].genome);
                     elem.setAttribute("workspace", JSON.stringify(self.currentWorkspace.workspace[env]));
                     elem.setAttribute("ms-api", self.metadataApi);
 
@@ -639,6 +640,20 @@ To use, add `<epiviz-workspace>` in the page
                 self.set("values", names)
 
                 this._refitModal();
+            }
+
+            _showTitle(currentWorkspace) {
+                // if (this.readonly) { return true;}
+                var currentWorkspace = this.currentWorkspace;
+                if(currentWorkspace == null || currentWorkspace == {} || currentWorkspace == undefined) {
+                    return true
+                } else {
+                    if (!currentWorkspace.title) {
+                        return true;
+                    }
+                }
+
+                return false
             }
 
             _showSaveWorkspace(currentWorkspace, user) {
