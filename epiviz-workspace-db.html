@@ -176,7 +176,7 @@ To use, add `<epiviz-workspace>` in the page
             <!-- <div style="display:inline-block;" hidden$="{{computeLogoutHidden(user)}}"> 
             disabled="{{computeLogoutHidden(user)}}" -->
             
-            <iron-label class="ws" hidden$="[[_showTitle(currentWorkspace.*)]]" >(Workspace: {{_getWorkspaceTitle(currentWorkspace.*, user)}})</iron-label>
+            <iron-label class$="{{_showTitleClass(currentWorkspace.*)}}">(Workspace: {{_getWorkspaceTitle(currentWorkspace.*, user)}})</iron-label>
             <!-- <div style="display:inline-block" hidden$="{{_isReadonly(readonly)}}"> -->
                 <!-- <span>(Workspace: {{_getWorkspaceTitle(currentWorkspace.*, user)}})</span>
                 <paper-button id="saveButton" raised on-tap="_saveWorkspace" hidden$="{{_showSaveWorkspace(currentWorkspace.*, user)}}">
@@ -192,7 +192,7 @@ To use, add `<epiviz-workspace>` in the page
                       </template> -->
             <!-- </div> -->
 
-            <paper-menu-button class$="{{_getWorkspaceClass()}}" vertical-offset=50>
+            <paper-menu-button class$="{{_getWorkspaceClass(user, userToken)}}" vertical-offset=50>
                 <paper-button raised slot="dropdown-trigger">
                     <span>Workspace</span>
                     <iron-icon icon="icons:arrow-drop-down"></iron-icon>
@@ -293,12 +293,14 @@ To use, add `<epiviz-workspace>` in the page
                  */
                     user: {
                         type: String,
-                        notify: true
+                        notify: true,
+                        value: ""
                     },
 
                     userToken: {
                         type: String,
-                        notify: true
+                        notify: true,
+                        value: ""
                     },
 
                     api: {
@@ -413,7 +415,16 @@ To use, add `<epiviz-workspace>` in the page
             }
 
             _getWorkspaceClass () {
-                return this.readonly ? "hidden" : "";
+
+                if (this.readonly) {
+                    return "hidden"
+                }
+
+                if (!(this.userToken && this.userToken != "undefined")) {
+                    return "hidden";
+                }
+
+                return "";
             }
 
             // _workspaceSavedChanged(newVal, oldVal) {
@@ -648,12 +659,26 @@ To use, add `<epiviz-workspace>` in the page
                 if(currentWorkspace == null || currentWorkspace == {} || currentWorkspace == undefined) {
                     return true
                 } else {
-                    if (!currentWorkspace.title) {
+                    if (!currentWorkspace.title || currentWorkspace.title == '') {
                         return true;
                     }
                 }
 
                 return false
+            }
+
+            _showTitleClass(currentWorkspace) {
+                // if (this.readonly) { return true;}
+                var currentWorkspace = this.currentWorkspace;
+                if(currentWorkspace == null || currentWorkspace == {} || currentWorkspace == undefined) {
+                    return "hidden"
+                } else {
+                    if (!currentWorkspace.title || currentWorkspace.title == '') {
+                        return "hidden";
+                    }
+                }
+
+                return "ws"
             }
 
             _showSaveWorkspace(currentWorkspace, user) {
